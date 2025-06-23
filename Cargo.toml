@@ -48,6 +48,8 @@ stellar-constants = { path = "packages/constants" }
 stellar-default-impl-macro = { path = "packages/contract-utils/default-impl-macro" }
 stellar-event-assertion = { path = "packages/test-utils/event-assertion" }
 stellar-fungible = { path = "packages/tokens/fungible" }
+stellar-ft = { path = "packages/tokens/ft" }
+
 stellar-macro-helpers = { path = "packages/contract-utils/macro-helpers" }
 stellar-non-fungible = { path = "packages/tokens/non-fungible" }
 stellar-ownable = { path = "packages/access/ownable" }
@@ -59,6 +61,10 @@ stellar-upgradeable = { path = "packages/contract-utils/upgradeable" }
 stellar-upgradeable-macros = { path = "packages/contract-utils/upgradeable-macros" }
 stellar-crypto = { path = "packages/contract-utils/crypto" }
 stellar-merkle-distributor = { path = "packages/contract-utils/merkle-distributor" }
+
+stellar-contract-utils = { path = "packages/contract-utils/stellar-contract-utils" }
+contract-trait-macro = { path = "../admin-sep/contract-trait-macro"}
+admin-sep = { path = "../admin-sep/admin_sep" }
 
 [profile.release]
 opt-level = "z"

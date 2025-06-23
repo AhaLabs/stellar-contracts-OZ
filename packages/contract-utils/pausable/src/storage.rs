@@ -5,6 +5,23 @@ use crate::{emit_paused, emit_unpaused, pausable::PausableError};
 /// Indicates whether the contract is in `Paused` state.
 pub const PAUSED: Symbol = symbol_short!("PAUSED");
 
+pub struct PauseableBase;
+
+impl crate::Pausable for PauseableBase {
+    type Impl = PauseableBase;
+    fn paused(e: &Env) -> bool {
+        paused(e)
+    }
+
+    fn pause(e: &Env, caller: soroban_sdk::Address) {
+        pause(e, &caller);
+    }
+
+    fn unpause(e: &Env, caller: soroban_sdk::Address) {
+        unpause(e, &caller);
+    }
+}
+
 /// Returns true if the contract is paused, and false otherwise.
 ///
 /// # Arguments

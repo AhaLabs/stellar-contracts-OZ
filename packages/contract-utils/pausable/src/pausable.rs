@@ -1,72 +1,56 @@
+use admin_sep::{AdminExt, Administratable};
+use contract_trait_macro::contracttrait;
 use soroban_sdk::{contracterror, symbol_short, Address, Env};
 
-pub trait Pausable {
-    /// Returns true if the contract is paused, and false otherwise.
-    ///
-    /// # Arguments
-    ///
-    /// * `e` - Access to Soroban environment.
-    fn paused(e: &Env) -> bool {
-        crate::paused(e)
-    }
+use crate::{BaseToken, PauseableBase};
 
-    /// Triggers `Paused` state.
-    ///
-    /// # Arguments
-    ///
-    /// * `e` - Access to Soroban environment.
-    /// * `caller` - The address of the caller.
-    ///
-    /// # Errors
-    ///
-    /// * [`PausableError::EnforcedPause`] - Occurs when the contract is already
-    ///   in `Paused` state.
-    ///
-    /// # Events
-    ///
-    /// * topics - `["paused"]`
-    /// * data - `[caller: Address]`
-    ///
-    /// # Notes
-    ///
-    /// We recommend using [`crate::pause()`] when implementing this function.
-    ///
-    /// # Security Warning
-    ///
-    /// **IMPORTANT**: The base implementation of [`crate::pause()`]
-    /// intentionally lacks authorization controls. If you want to restrict
-    /// who can `pause` the contract, you MUST implement proper
-    /// authorization in your contract.
+#[contracttrait(default = PauseableBase)]
+pub trait Pausable {
+    fn paused(e: &Env) -> bool;
+
     fn pause(e: &Env, caller: Address);
 
-    /// Triggers `Unpaused` state.
-    ///
-    /// # Arguments
-    ///
-    /// * `e` - Access to Soroban environment.
-    /// * `caller` - The address of the caller.
-    ///
-    /// # Errors
-    ///
-    /// * [`PausableError::ExpectedPause`] - Occurs when the contract is already
-    ///   in `Unpaused` state.
-    ///
-    /// # Events
-    ///
-    /// * topics - `["unpaused"]`
-    /// * data - `[caller: Address]`
-    ///
-    /// # Notes
-    ///
-    /// We recommend using [`crate::unpause()`] when implementing this function.
-    ///
-    /// # Security Warning
-    ///
-    /// **IMPORTANT**: The base implementation of [`crate::unpause()`]
-    /// intentionally lacks authorization controls. If you want to restrict
-    /// who can `unpause` the contract, you MUST implement proper
-    /// authorization in your contract.
     fn unpause(e: &Env, caller: Address);
+}
+
+// impl<T> Pausable for T
+// where
+//     T:  Administratable,
+// {
+//     type Impl = PauseableBase;
+
+//     fn pause(e: &soroban_sdk::Env, operator: soroban_sdk::Address) {
+//         Self::require_admin(e);
+//         Self::Impl::pause(e, operator);
+//     }
+
+//     fn unpause(e: &soroban_sdk::Env, operator: soroban_sdk::Address) {
+//         Self::require_admin(e);
+//         Self::Impl::unpause(e, operator);
+//     }
+// }
+
+pub trait PauseChecker {
+    fn when_not_paused(e: &Env);
+
+    fn when_paused(e: &Env);
+}
+
+impl<T> PauseChecker for T
+where
+    T: Pausable,
+{
+    fn when_not_paused(e: &Env) {
+        if T::paused(e) {
+            soroban_sdk::panic_with_error!(e, PausableError::EnforcedPause);
+        }
+    }
+
+    fn when_paused(e: &Env) {
+        if !T::paused(e) {
+            soroban_sdk::panic_with_error!(e, PausableError::ExpectedPause);
+        }
+    }
 }
 
 // ################## ERRORS ##################
