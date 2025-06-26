@@ -15,8 +15,6 @@ soroban-sdk = { workspace = true }
 stellar-ft = { workspace = true }
 stellar-pausable = { workspace = true }
 
-
-contract-trait-macro.workspace = true
 admin-sep.workspace = true
 
 [dev-dependencies]

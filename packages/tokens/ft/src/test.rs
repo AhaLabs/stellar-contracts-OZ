@@ -15,6 +15,9 @@ use stellar_constants::{BALANCE_EXTEND_AMOUNT, INSTANCE_EXTEND_AMOUNT, INSTANCE_
 use stellar_event_assertion::EventAssertion;
 
 use crate::{Base, StorageKey};
+use super::fungible::FungibleToken;
+use super::extensions::mintable::FungibleMintable;
+use super::extensions::burnable::FungibleBurnable;
 
 #[contract]
 struct MockContract;
@@ -26,7 +29,7 @@ fn initial_state() {
     let account = Address::generate(&e);
     e.as_contract(&address, || {
         assert_eq!(Base::total_supply(&e), 0);
-        assert_eq!(Base::balance(&e, &account), 0);
+        assert_eq!(Base::balance(&e, account), 0);
     });
 }
 
@@ -68,8 +71,8 @@ fn approve_with_event() {
 
     e.as_contract(&address, || {
         let allowance_data = (50, 1000);
-        Base::approve(&e, &owner, &spender, allowance_data.0, allowance_data.1);
-        let allowance_val = Base::allowance(&e, &owner, &spender);
+        Base::approve(&e, owner.clone(), spender.clone(), allowance_data.0, allowance_data.1);
+        let allowance_val = Base::allowance(&e, owner.clone(), spender.clone());
         assert_eq!(allowance_val, 50);
 
         let events = e.events().all();
@@ -102,10 +105,10 @@ fn approve_handles_expiry() {
     let spender = Address::generate(&e);
 
     e.as_contract(&address, || {
-        Base::approve(&e, &owner, &spender, 50, 2);
+        Base::approve(&e, owner.clone(), spender.clone(), 50, 2);
         e.ledger().set_sequence_number(3);
 
-        let expired_allowance = Base::allowance(&e, &owner, &spender);
+        let expired_allowance = Base::allowance(&e, owner.clone(), spender.clone());
         assert_eq!(expired_allowance, 0);
     });
 }
@@ -119,11 +122,11 @@ fn spend_allowance_reduces_amount() {
     let spender = Address::generate(&e);
 
     e.as_contract(&address, || {
-        Base::approve(&e, &owner, &spender, 50, 1000);
+        Base::approve(&e, owner.clone(), spender.clone(), 50, 1000);
 
         Base::spend_allowance(&e, &owner, &spender, 20);
 
-        let updated_allowance = Base::allowance(&e, &owner, &spender);
+        let updated_allowance = Base::allowance(&e, owner.clone(), spender.clone());
         assert_eq!(updated_allowance, 30);
     });
 }
@@ -138,7 +141,7 @@ fn spend_allowance_insufficient_allowance_fails() {
     let spender = Address::generate(&e);
 
     e.as_contract(&address, || {
-        Base::approve(&e, &owner, &spender, 10, 1000);
+        Base::approve(&e, owner.clone(), spender.clone(), 10, 1000);
         Base::spend_allowance(&e, &owner, &spender, 20);
     });
 }
@@ -207,13 +210,13 @@ fn set_allowance_with_zero_amount() {
 
     e.as_contract(&address, || {
         Base::set_allowance(&e, &owner, &spender, 0, 5);
-        let allowance_val = Base::allowance(&e, &owner, &spender);
+        let allowance_val = Base::allowance(&e, owner.clone(), spender.clone());
         assert_eq!(allowance_val, 0);
 
         // should pass for a past ledger
         e.ledger().set_sequence_number(10);
         Base::set_allowance(&e, &owner2, &spender, 0, 5);
-        let allowance_val = Base::allowance(&e, &owner2, &spender);
+        let allowance_val = Base::allowance(&e, owner2.clone(), spender.clone());
         assert_eq!(allowance_val, 0);
     });
 }
@@ -227,10 +230,10 @@ fn transfer_works() {
     let recipient = Address::generate(&e);
 
     e.as_contract(&address, || {
-        Base::mint(&e, &from, 100);
-        Base::transfer(&e, &from, &recipient, 50);
-        assert_eq!(Base::balance(&e, &from), 50);
-        assert_eq!(Base::balance(&e, &recipient), 50);
+        Base::mint(&e, from.clone(), 100);
+        Base::transfer(&e, from.clone(), recipient.clone(), 50);
+        assert_eq!(Base::balance(&e, from.clone()), 50);
+        assert_eq!(Base::balance(&e, recipient.clone()), 50);
 
         let mut event_assert = EventAssertion::new(&e, address.clone());
         event_assert.assert_event_count(2);
@@ -248,9 +251,9 @@ fn transfer_zero_works() {
     let recipient = Address::generate(&e);
 
     e.as_contract(&address, || {
-        Base::transfer(&e, &from, &recipient, 0);
-        assert_eq!(Base::balance(&e, &from), 0);
-        assert_eq!(Base::balance(&e, &recipient), 0);
+        Base::transfer(&e, from.clone(), recipient.clone(), 0);
+        assert_eq!(Base::balance(&e, from.clone()), 0);
+        assert_eq!(Base::balance(&e, recipient.clone()), 0);
 
         let events = e.events().all();
         assert_eq!(events.len(), 1);
@@ -266,7 +269,7 @@ fn extend_balance_ttl_thru_transfer() {
     let recipient = Address::generate(&e);
 
     e.as_contract(&address, || {
-        Base::mint(&e, &from, 100);
+        Base::mint(&e, from.clone(), 100);
 
         let key = StorageKey::Balance(from.clone());
 
@@ -274,7 +277,7 @@ fn extend_balance_ttl_thru_transfer() {
         e.ledger().with_mut(|l| {
             l.sequence_number += ttl;
         });
-        Base::transfer(&e, &from, &recipient, 50);
+        Base::transfer(&e, from.clone(), recipient.clone(), 50);
         let ttl = e.storage().persistent().get_ttl(&key);
         assert_eq!(ttl, BALANCE_EXTEND_AMOUNT);
     });
@@ -290,17 +293,17 @@ fn approve_and_transfer_from() {
     let recipient = Address::generate(&e);
 
     e.as_contract(&address, || {
-        Base::mint(&e, &owner, 100);
-        Base::approve(&e, &owner, &spender, 50, 1000);
+        Base::mint(&e, owner.clone(), 100);
+        Base::approve(&e, owner.clone(), spender.clone(), 50, 1000);
 
-        let allowance_val = Base::allowance(&e, &owner, &spender);
+        let allowance_val = Base::allowance(&e, owner.clone(), spender.clone());
         assert_eq!(allowance_val, 50);
 
-        Base::transfer_from(&e, &spender, &owner, &recipient, 30);
-        assert_eq!(Base::balance(&e, &owner), 70);
-        assert_eq!(Base::balance(&e, &recipient), 30);
+        Base::transfer_from(&e, spender.clone(), owner.clone(), recipient.clone(), 30);
+        assert_eq!(Base::balance(&e, owner.clone()), 70);
+        assert_eq!(Base::balance(&e, recipient.clone()), 30);
 
-        let updated_allowance = Base::allowance(&e, &owner, &spender);
+        let updated_allowance = Base::allowance(&e, owner.clone(), spender.clone());
         assert_eq!(updated_allowance, 20);
 
         let mut event_assert = EventAssertion::new(&e, address.clone());
@@ -321,8 +324,8 @@ fn transfer_insufficient_balance_fails() {
     let recipient = Address::generate(&e);
 
     e.as_contract(&address, || {
-        Base::mint(&e, &from, 50);
-        Base::transfer(&e, &from, &recipient, 100);
+        Base::mint(&e, from.clone(), 50);
+        Base::transfer(&e, from.clone(), recipient.clone(), 100);
     });
 }
 
@@ -337,9 +340,9 @@ fn transfer_from_insufficient_allowance_fails() {
     let recipient = Address::generate(&e);
 
     e.as_contract(&address, || {
-        Base::mint(&e, &owner, 100);
-        Base::approve(&e, &owner, &spender, 30, 1000);
-        Base::transfer_from(&e, &spender, &owner, &recipient, 50);
+        Base::mint(&e, owner.clone(), 100);
+        Base::approve(&e, owner.clone(), spender.clone(), 30, 1000);
+        Base::transfer_from(&e, spender.clone(), owner.clone(), recipient, 50);
     });
 }
 
@@ -351,10 +354,10 @@ fn update_transfers_between_accounts() {
     let to = Address::generate(&e);
 
     e.as_contract(&address, || {
-        Base::mint(&e, &from, 100);
+        Base::mint(&e, from.clone(), 100);
         Base::update(&e, Some(&from), Some(&to), 50);
-        assert_eq!(Base::balance(&e, &from), 50);
-        assert_eq!(Base::balance(&e, &to), 50);
+        assert_eq!(Base::balance(&e, from.clone()), 50);
+        assert_eq!(Base::balance(&e, to), 50);
     });
 }
 
@@ -366,7 +369,7 @@ fn update_mints_tokens() {
 
     e.as_contract(&address, || {
         Base::update(&e, None, Some(&to), 100);
-        assert_eq!(Base::balance(&e, &to), 100);
+        assert_eq!(Base::balance(&e, to), 100);
         assert_eq!(Base::total_supply(&e), 100);
     });
 }
@@ -378,9 +381,9 @@ fn update_burns_tokens() {
     let from = Address::generate(&e);
 
     e.as_contract(&address, || {
-        Base::mint(&e, &from, 100);
+        Base::mint(&e, from.clone(), 100);
         Base::update(&e, Some(&from), None, 50);
-        assert_eq!(Base::balance(&e, &from), 50);
+        assert_eq!(Base::balance(&e, from.clone()), 50);
         assert_eq!(Base::total_supply(&e), 50);
     });
 }
@@ -406,7 +409,7 @@ fn update_overflow_panics() {
     let account = Address::generate(&e);
 
     e.as_contract(&address, || {
-        Base::mint(&e, &account, i128::MAX);
+        Base::mint(&e, account.clone(), i128::MAX);
         Base::update(&e, None, Some(&account), 1);
     });
 }
@@ -420,7 +423,7 @@ fn update_with_insufficient_balance_panics() {
     let to = Address::generate(&e);
 
     e.as_contract(&address, || {
-        Base::mint(&e, &from, 50);
+        Base::mint(&e, from.clone(), 50);
         Base::update(&e, Some(&from), Some(&to), 100);
     });
 }
@@ -441,7 +444,7 @@ fn approve_requires_auth() {
     let expiration_ledger = 1000;
 
     e.as_contract(&address, || {
-        Base::approve(&e, &owner, &spender, amount, expiration_ledger);
+        Base::approve(&e, owner.clone(), spender.clone(), amount, expiration_ledger);
     });
 
     let auths = e.auths();
@@ -474,8 +477,8 @@ fn transfer_requires_auth() {
     let amount = 100;
 
     e.as_contract(&address, || {
-        Base::mint(&e, &from, amount);
-        Base::transfer(&e, &from, &to, amount);
+        Base::mint(&e, from.clone(), amount);
+        Base::transfer(&e, from.clone(), to.clone(), amount);
     });
 
     let auths = e.auths();
@@ -503,9 +506,9 @@ fn transfer_from_requires_auth() {
     let amount = 50;
 
     e.as_contract(&address, || {
-        Base::mint(&e, &owner, 100);
-        Base::approve(&e, &owner, &spender, amount, 1000);
-        Base::transfer_from(&e, &spender, &owner, &recipient, amount);
+        Base::mint(&e, owner.clone(), 100);
+        Base::approve(&e, owner.clone(), spender.clone(), amount, 1000);
+        Base::transfer_from(&e, spender.clone(), owner.clone(), recipient, amount);
     });
 
     let auths = e.auths();
@@ -555,8 +558,8 @@ fn burn_requires_auth() {
     let amount = 50;
 
     e.as_contract(&address, || {
-        Base::mint(&e, &from, 100);
-        Base::burn(&e, &from, amount);
+        Base::mint(&e, from.clone(), 100);
+        Base::burn(&e, from.clone(), amount);
     });
 
     let auths = e.auths();
@@ -583,9 +586,9 @@ fn burn_from_requires_auth() {
     let amount = 50;
 
     e.as_contract(&address, || {
-        Base::mint(&e, &owner, 100);
-        Base::approve(&e, &owner, &spender, amount, 1000);
-        Base::burn_from(&e, &spender, &owner, amount);
+        Base::mint(&e, owner.clone(), 100);
+        Base::approve(&e, owner.clone(), spender.clone(), amount, 1000);
+        Base::burn_from(&e, spender.clone(), owner.clone(), amount);
     });
 
     let auths = e.auths();
@@ -632,8 +635,8 @@ fn mint_works() {
     let address = e.register(MockContract, ());
     let account = Address::generate(&e);
     e.as_contract(&address, || {
-        Base::mint(&e, &account, 100);
-        assert_eq!(Base::balance(&e, &account), 100);
+        Base::mint(&e, account.clone(), 100);
+        assert_eq!(Base::balance(&e, account.clone()), 100);
         assert_eq!(Base::total_supply(&e), 100);
 
         let mut event_assert = EventAssertion::new(&e, address.clone());
@@ -661,8 +664,8 @@ fn mint_base_implementation_has_no_auth() {
 
     // This should NOT panic even without authorization
     e.as_contract(&address, || {
-        Base::mint(&e, &account, 100);
-        assert_eq!(Base::balance(&e, &account), 100);
+        Base::mint(&e, account.clone(), 100);
+        assert_eq!(Base::balance(&e, account.clone()), 100);
     });
 }
 

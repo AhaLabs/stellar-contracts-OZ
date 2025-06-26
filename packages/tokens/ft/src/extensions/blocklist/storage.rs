@@ -1,10 +1,9 @@
-use admin_sep::Administratable;
 use soroban_sdk::{assert_with_error, contracttype, panic_with_error, Address, Env};
 use stellar_constants::{ALLOW_BLOCK_EXTEND_AMOUNT, ALLOW_BLOCK_TTL_THRESHOLD};
 
 use crate::{
     extensions::blocklist::{
-        emit_user_blocked, emit_user_unblocked, BlockListImpl, FungibleBlockList,
+        emit_user_blocked, emit_user_unblocked, FungibleBlockList, FungibleBlockListExt,
     },
     fungible::FungibleToken,
     Base, FungibleTokenError,
@@ -27,13 +26,13 @@ impl FungibleBlockList for BlockList {
     }
 }
 
-impl<T: Administratable + FungibleToken> FungibleToken for BlockListImpl<T> {
-    type Impl = T;
+impl<T: FungibleBlockList, F: FungibleToken> FungibleToken for FungibleBlockListExt<T, F> {
+    type Impl = F;
     fn transfer(e: &Env, from: soroban_sdk::Address, to: soroban_sdk::Address, amount: i128) {
         // Check if either address is blocked
         assert_with_error!(
             e,
-            !BlockList::blocked(e, &from) && !BlockList::blocked(e, &to),
+            !T::blocked(e, from.clone()) && !T::blocked(e, to.clone()),
             FungibleTokenError::UserBlocked
         );
         Self::Impl::transfer(e, from, to, amount);
@@ -49,7 +48,7 @@ impl<T: Administratable + FungibleToken> FungibleToken for BlockListImpl<T> {
         // Check if either address is blocked
         assert_with_error!(
             e,
-            !BlockList::blocked(e, &from) || !BlockList::blocked(e, &to),
+            !T::blocked(e, from.clone()) || !T::blocked(e, to.clone()),
             FungibleTokenError::UserBlocked
         );
         Self::Impl::transfer_from(e, spender, from, to, amount);
@@ -63,7 +62,7 @@ impl<T: Administratable + FungibleToken> FungibleToken for BlockListImpl<T> {
         live_until_ledger: u32,
     ) {
         // Check if either address is blocked
-        assert_with_error!(e, !BlockList::blocked(e, &owner), FungibleTokenError::UserBlocked);
+        assert_with_error!(e, !T::blocked(e, owner.clone()), FungibleTokenError::UserBlocked);
         Self::Impl::approve(e, owner, spender, amount, live_until_ledger);
     }
 }

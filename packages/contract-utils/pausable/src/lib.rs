@@ -57,49 +57,15 @@ pub use crate::{
     storage::{pause, paused, unpause, when_not_paused, when_paused},
 };
 
-use admin_sep::{AdminExt, Administratable};
+use admin_sep::{AdminExt, Administratable, AdministratableExt};
+use admin_sep::contracttrait;
 pub use pausable::PauseChecker;
 pub use storage::PauseableBase;
 
-pub trait Proxy<T> {
-    type Impl;
-}
+pub struct PausableExt<T, N>(T, N);
 
-impl<T> Proxy<T> for T {
-    type Impl = T;
-}
-
-pub struct PausableToken<T = PauseableBase>(T);
-
-// impl<T> Pausable for PausableToken<T> where T: Pausable {
-//     type Impl = T::Impl;
-//     fn pause(e: &soroban_sdk::Env, operator: soroban_sdk::Address) {
-//         Self::Impl::pause(e, operator);
-//     }
-
-//     fn unpause(e: &soroban_sdk::Env, operator: soroban_sdk::Address) {
-//         Self::Impl::unpause(e, operator);
-//     }
-
-//     fn paused(e: &soroban_sdk::Env) -> bool {
-//         Self::Impl::paused(e)
-//     }
-// }
-
-impl<T: Administratable> Administratable for PausableToken<T> {
-    type Impl = T;
-}
-
-impl<T> Pausable for PausableToken<T>
-where
-    T: Administratable,
-{
-    type Impl = PauseableBase;
-
-    fn paused(e: &soroban_sdk::Env) -> bool {
-        Self::Impl::paused(e)
-    }
-
+impl<T: Administratable, N: Pausable> Pausable for AdministratableExt<T, N> {
+    type Impl = N;
     fn pause(e: &soroban_sdk::Env, operator: soroban_sdk::Address) {
         T::require_admin(e);
         Self::Impl::pause(e, operator);
@@ -110,6 +76,11 @@ where
         Self::Impl::unpause(e, operator);
     }
 }
+
+/// Example of a contract trait. To demonstrate how to create a contract extension
+#[contracttrait(is_extension = true)]
+pub trait Empty {}
+
 
 /// A Marker trait to indicate that a type implements the Base version Fungible Token
 pub struct BaseToken<T>(T);

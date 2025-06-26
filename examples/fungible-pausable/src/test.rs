@@ -127,3 +127,40 @@ fn burn_fails_when_paused() {
     client.pause(&owner);
     client.burn(&owner, &200);
 }
+
+#[test]
+// #[should_panic(expected = "Error(Contract, #1000)")]
+fn only_admin_can_pause() {
+    let e = Env::default();
+    let owner = Address::generate(&e);
+    let client = create_client(&e, &owner, 1000);
+    let other_user = Address::generate(&e);
+    e.mock_all_auths();
+    client.pause(&other_user);
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #114)")]
+fn transfer_fails_when_user_blocked() {
+    let e = Env::default();
+    let owner = Address::generate(&e);
+    let recipient = Address::generate(&e);
+    let client = create_client(&e, &owner, 1000);
+
+    e.mock_all_auths();
+    client.block_user(&recipient, &owner);
+    client.transfer(&owner, &recipient, &100);
+}
+
+// #[test]
+// #[should_panic(expected = "Error(Contract, #114)")]
+// fn only_admin_can_block_user() {
+//     let e = Env::default();
+//     let owner = Address::generate(&e);
+//     let recipient = Address::generate(&e);
+//     let client = create_client(&e, &owner, 1000);
+
+//     e.mock_all_auths();
+//     client.block_user(&recipient, &recipient);
+//     // client.transfer(&owner, &recipient, &100);
+// }

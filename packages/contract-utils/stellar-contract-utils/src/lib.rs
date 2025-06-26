@@ -50,8 +50,5 @@
 #![no_std]
 
 pub use admin_sep::*;
-pub use contract_trait_macro::*;
 pub use stellar_ft::*;
 pub use stellar_pausable::*;
-
-

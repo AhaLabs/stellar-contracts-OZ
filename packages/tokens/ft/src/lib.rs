@@ -75,26 +75,26 @@ mod fungible;
 pub(crate) mod storage;
 // mod utils;
 
-use admin_sep::{AdminExt, Administratable};
+use admin_sep::{AdminExt, Administratable, AdministratableExt};
 
 pub use extensions::blocklist::FungibleBlockList;
 pub use extensions::burnable::FungibleBurnable;
 pub use extensions::mintable::FungibleMintable;
 // pub use extensions::{allowlist, blocklist, burnable, capped};
 pub use fungible::{emit_approve, emit_transfer, FungibleToken, FungibleTokenError};
-use stellar_pausable::{Pausable, PausableToken, PauseChecker};
+use stellar_pausable::{Empty, EmptyExt, Pausable, PausableExt, PauseChecker};
 pub use storage::{AllowanceData, AllowanceKey, Base, StorageKey};
 // pub use utils::{sac_admin_generic, sac_admin_wrapper};
 
-impl<T: FungibleToken + Pausable> FungibleToken for PausableToken<T> {
-    type Impl = T;
+impl<T: Pausable, F: FungibleToken> FungibleToken for PausableExt<T, F> {
+    type Impl = F;
     fn transfer(
         e: &soroban_sdk::Env,
         from: soroban_sdk::Address,
         to: soroban_sdk::Address,
         amount: i128,
     ) {
-        Self::Impl::when_not_paused(e);
+        T::when_not_paused(e);
         Self::Impl::transfer(e, from, to, amount);
     }
 
@@ -105,19 +105,16 @@ impl<T: FungibleToken + Pausable> FungibleToken for PausableToken<T> {
         to: soroban_sdk::Address,
         amount: i128,
     ) {
-        Self::Impl::when_not_paused(e);
+        T::when_not_paused(e);
         Self::Impl::transfer_from(e, spender, from, to, amount);
     }
 }
 
-impl<T> FungibleBurnable for PausableToken<T>
-where
-    T: Administratable,
-{
-    type Impl = Base;
+impl<T: Pausable, F: FungibleBurnable> FungibleBurnable for PausableExt<T, F> {
+    type Impl = F;
     fn burn(e: &soroban_sdk::Env, from: soroban_sdk::Address, amount: i128) {
-        Self::when_not_paused(e);
-        Base::burn(e, from, amount);
+        T::when_not_paused(e);
+        Self::Impl::burn(e, from, amount);
     }
     fn burn_from(
         e: &soroban_sdk::Env,
@@ -125,21 +122,40 @@ where
         from: soroban_sdk::Address,
         amount: i128,
     ) {
-        Self::when_not_paused(e);
-        Base::burn_from(e, spender, from, amount);
+        T::when_not_paused(e);
+        Self::Impl::burn_from(e, spender, from, amount);
     }
 }
 
 // Mintable
 
-impl<T> FungibleMintable for PausableToken<T>
+impl<T, F> FungibleMintable for AdministratableExt<T, F>
 where
     T: Administratable,
+    F: FungibleMintable,
 {
-    type Impl = Base;
+    type Impl = F;
     fn mint(e: &soroban_sdk::Env, to: soroban_sdk::Address, amount: i128) {
-        Self::when_not_paused(e);
         T::require_admin(e);
+        Self::Impl::mint(e, to, amount);
+    }
+}
+
+impl<T, F> FungibleMintable for PausableExt<T, F>
+where
+    T: Pausable,
+    F: FungibleMintable,
+{
+    type Impl = F;
+    fn mint(e: &soroban_sdk::Env, to: soroban_sdk::Address, amount: i128) {
+        T::when_not_paused(e);
+        Self::Impl::mint(e, to, amount);
+    }
+}
+
+impl<T: Empty, F: FungibleMintable> FungibleMintable for EmptyExt<T, F> {
+    type Impl = F;
+    fn mint(e: &soroban_sdk::Env, to: soroban_sdk::Address, amount: i128) {
         Self::Impl::mint(e, to, amount);
     }
 }

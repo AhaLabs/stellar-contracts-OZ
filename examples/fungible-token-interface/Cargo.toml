@@ -1,5 +1,5 @@
 [package]
-name = "fungible-token-interface-example"
+name = "fungible_token-interface-example"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true

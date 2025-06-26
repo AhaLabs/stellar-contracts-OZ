@@ -1,4 +1,4 @@
-use contract_trait_macro::contracttrait;
+use admin_sep::contracttrait;
 use soroban_sdk::{contracterror, Address, Env, Symbol};
 
 #[contracttrait]
@@ -197,7 +197,7 @@ pub trait AccessControl {
     /// * [`stellar_role_transfer::RoleTransferError::NoPendingTransfer`] - If
     ///   there is no pending transfer to accept.
     /// * [`AccessControlError::AdminNotSet`] - If admin account is not set.
-    fn accept_admin_transfer(e: &Env){
+    fn accept_admin_transfer(e: &Env) {
         crate::accept_admin_transfer(e);
     }
 

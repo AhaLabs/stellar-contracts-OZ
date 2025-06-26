@@ -1,7 +1,6 @@
 use soroban_sdk::{symbol_short, Address, Env};
 
-
-use contract_trait_macro::contracttrait;
+use admin_sep::contracttrait;
 
 /// Mintable Trait for Fungible Token
 ///
@@ -66,8 +65,6 @@ pub trait FungibleMintable {
     /// Failing to add proper authorization could allow anyone to mint tokens!
     fn mint(e: &Env, to: Address, amount: i128);
 }
-
-
 
 // ################## EVENTS ##################
 

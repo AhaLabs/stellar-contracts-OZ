@@ -1,34 +1,25 @@
-use admin_sep::{AdminExt, Administratable};
-use contract_trait_macro::contracttrait;
+use admin_sep::contracttrait;
 use soroban_sdk::{contracterror, symbol_short, Address, Env};
 
-use crate::{BaseToken, PauseableBase};
 
-#[contracttrait(default = PauseableBase)]
+/// The `PauseableBase` trait provides the default implementation for the `Pausable` trait.
+/// It requires an extension to be implemented, which is expected to provide the authorization logic
+/// for pausing and unpausing the contract.
+#[contracttrait(
+    default = PauseableBase, 
+    extension_required = true, 
+    is_extension = true
+)]
 pub trait Pausable {
+    /// Returns true if the contract is paused, and false otherwise.
     fn paused(e: &Env) -> bool;
 
-    fn pause(e: &Env, caller: Address);
+    /// Authorized function to pause the contract.
+    fn pause(e: &Env, caller: soroban_sdk::Address);
 
-    fn unpause(e: &Env, caller: Address);
+    /// Authorized function to unpause the contract.
+    fn unpause(e: &Env, caller: soroban_sdk::Address);
 }
-
-// impl<T> Pausable for T
-// where
-//     T:  Administratable,
-// {
-//     type Impl = PauseableBase;
-
-//     fn pause(e: &soroban_sdk::Env, operator: soroban_sdk::Address) {
-//         Self::require_admin(e);
-//         Self::Impl::pause(e, operator);
-//     }
-
-//     fn unpause(e: &soroban_sdk::Env, operator: soroban_sdk::Address) {
-//         Self::require_admin(e);
-//         Self::Impl::unpause(e, operator);
-//     }
-// }
 
 pub trait PauseChecker {
     fn when_not_paused(e: &Env);
@@ -36,9 +27,7 @@ pub trait PauseChecker {
     fn when_paused(e: &Env);
 }
 
-impl<T> PauseChecker for T
-where
-    T: Pausable,
+impl<T: Pausable> PauseChecker for T
 {
     fn when_not_paused(e: &Env) {
         if T::paused(e) {

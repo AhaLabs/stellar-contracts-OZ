@@ -61,6 +61,7 @@ impl ExampleContract {
 
 #[contractimpl]
 impl Pausable for ExampleContract {
+    type Impl = ExampleContract;
     fn paused(e: &Env) -> bool {
         pausable::paused(e)
     }

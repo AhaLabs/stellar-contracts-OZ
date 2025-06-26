@@ -2,8 +2,8 @@ extern crate std;
 
 use soroban_sdk::{contract, testutils::Address as _, Address, Env};
 
-use crate::{extensions::blocklist::storage::BlockList, Base, fungible::FungibleToken};
-
+use crate::{extensions::blocklist::storage::BlockList, fungible::FungibleToken, Base};
+use super::super::mintable::FungibleMintable;
 #[contract]
 struct MockContract;
 
@@ -56,7 +56,7 @@ fn transfer_with_unblocked_users_works() {
 
     e.as_contract(&address, || {
         // Mint tokens to user1
-        Base::mint(&e, &user1, 100);
+        Base::mint(&e, user1.clone(), 100);
 
         // Transfer tokens from user1 to user2
         BlockList::transfer(&e, &user1, &user2, 50);
@@ -81,7 +81,7 @@ fn transfer_with_sender_blocked_panics() {
         BlockList::block_user(&e, &user1);
 
         // Mint tokens to user1
-        Base::mint(&e, &user1, 100);
+        Base::mint(&e, user1.clone(), 100);
 
         // Try to transfer tokens from user1 (blocked) to user2
         BlockList::transfer(&e, &user1, &user2, 50);
@@ -102,7 +102,7 @@ fn transfer_with_receiver_blocked_panics() {
         BlockList::block_user(&e, &user2);
 
         // Mint tokens to user1
-        Base::mint(&e, &user1, 100);
+        Base::mint(&e, user1.clone(), 100);
 
         // Try to transfer tokens from user1 to user2 (blocked)
         BlockList::transfer(&e, &user1, &user2, 50);

@@ -9,37 +9,43 @@
 //! [`stellar_fungible::fungible::FungibleToken`] and
 //! [`stellar_fungible::burnable::FungibleBurnable`].
 
-use soroban_sdk::{contract, contracterror, contractimpl, Address, Env, String};
+use soroban_sdk::{contract, contractimpl, Address, Env, String};
 use stellar_contract_utils::{
-    derive_contract_base, derive_contract_extension, extensions::blocklist::BlockListImpl, Admin,
-    Administratable, Base, FungibleBlockList, FungibleBurnable, FungibleMintable, FungibleToken,
-    Pausable, PausableToken, PauseableBase,
+    derive_contract,
+    extensions::blocklist::{BlockList, FungibleBlockListExt},
+    Admin, Administratable, AdministratableExt, Base, Empty, EmptyExt,
+    FungibleBlockList, FungibleBurnable, FungibleMintable, FungibleToken, Pausable, PausableExt,
+    PauseableBase, Upgradable
 };
-// use stellar_ft::{Base, FungibleBurnable, FungibleMintable, FungibleToken};
-// use stellar_pausable::AdminPausable;
 
 #[contract]
-#[derive_contract_base(Administratable)]
-// #[derive_contract_extension(FungibleMintable, FungibleBurnable, FungibleToken)]
+#[derive_contract(
+    Administratable,
+    Upgradable(
+        ext = AdministratableExt,
+    ),
+    // Example Extension that does nothing
+    Empty,
+    Pausable(
+        ext = AdministratableExt,
+    ),
+    FungibleBlockList(
+        ext = AdministratableExt,
+    ),
+    FungibleMintable(
+        ext = AdministratableExt,
+        ext = PausableExt,
+        ext = EmptyExt,
+    ),
+    FungibleBurnable(
+        ext = PausableExt,
+    ),
+    FungibleToken(
+        ext = FungibleBlockListExt, 
+        ext = PausableExt
+    ),
+)]
 pub struct ExampleContract;
-
-Pausable!(ExampleContract);
-// FungibleBlockList!(ExampleContract, BlockListImpl<ExampleContract>);
-impl FungibleToken for ExampleContract {
-    type Impl = Base;
-}
-// FungibleToken!(ExampleContract, PausableToken<BlockListImpl<ExampleContract>>);
-FungibleToken!(ExampleContract, PausableToken<ExampleContract>);
-
-FungibleBurnable!(ExampleContract, PausableToken<ExampleContract>);
-FungibleMintable!(ExampleContract, PausableToken<ExampleContract>);
-
-#[contracterror]
-#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
-#[repr(u32)]
-pub enum ExampleContractError {
-    Unauthorized = 1,
-}
 
 #[contractimpl]
 impl ExampleContract {

@@ -63,8 +63,8 @@ stellar-crypto = { path = "packages/contract-utils/crypto" }
 stellar-merkle-distributor = { path = "packages/contract-utils/merkle-distributor" }
 
 stellar-contract-utils = { path = "packages/contract-utils/stellar-contract-utils" }
-contract-trait-macro = { path = "../admin-sep/contract-trait-macro"}
-admin-sep = { path = "../admin-sep/admin_sep" }
+
+admin-sep = { git = "https://github.com/AhaLabs/admin-sep", rev = "32c4257567275d8839211cfdb96f8eb4bcf513eb" }
 
 [profile.release]
 opt-level = "z"

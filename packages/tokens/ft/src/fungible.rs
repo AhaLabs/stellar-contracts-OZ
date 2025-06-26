@@ -1,7 +1,5 @@
-use admin_sep::Admin;
-use contract_trait_macro::contracttrait;
+use admin_sep::contracttrait;
 use soroban_sdk::{contracterror, symbol_short, Address, Env, String};
-
 
 /// Vanilla Fungible Token Trait
 ///
@@ -183,8 +181,6 @@ pub trait FungibleToken {
     /// * `e` - Access to Soroban environment.
     fn symbol(e: &Env) -> String;
 }
-
-
 
 // ################## ERRORS ##################
 

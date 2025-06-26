@@ -12,7 +12,6 @@ doctest = false
 
 [dependencies]
 soroban-sdk = { workspace = true }
-contract-trait-macro.workspace = true
 admin-sep.workspace = true
 
 [dev-dependencies]

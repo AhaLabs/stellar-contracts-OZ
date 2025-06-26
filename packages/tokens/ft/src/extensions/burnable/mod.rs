@@ -2,9 +2,8 @@ mod storage;
 
 mod test;
 
-use contract_trait_macro::contracttrait;
+use admin_sep::contracttrait;
 use soroban_sdk::{symbol_short, Address, Env};
-
 
 /// Burnable Trait for Fungible Token
 ///
@@ -66,8 +65,6 @@ pub trait FungibleBurnable {
     /// * data - `[amount: i128]`
     fn burn_from(e: &Env, spender: Address, from: Address, amount: i128);
 }
-
-
 
 // ################## EVENTS ##################
 
