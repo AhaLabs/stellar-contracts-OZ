@@ -9,6 +9,8 @@ use crate::{
     Base,
 };
 
+use crate::fungible::FungibleToken;
+
 #[contract]
 struct MockContract;
 

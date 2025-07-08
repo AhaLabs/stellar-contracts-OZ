@@ -6,6 +6,8 @@ use crate::{
     Base,
 };
 
+use super::fungible::FungibleToken;
+
 /// Storage key that maps to [`Metadata`]
 pub const METADATA_KEY: Symbol = symbol_short!("METADATA");
 
@@ -40,27 +42,14 @@ pub struct Metadata {
     pub symbol: String,
 }
 
-impl Base {
-    // ################## QUERY STATE ##################
+impl FungibleToken for Base {
+    type Impl = EventExt<Self>;
 
-    /// Returns the total amount of tokens in circulation. If no supply is
-    /// recorded, it defaults to `0`.
-    ///
-    /// # Arguments
-    ///
-    /// * `e` - Access to the Soroban environment.
-    pub fn total_supply(e: &Env) -> i128 {
+    fn total_supply(e: &Env) -> i128 {
         e.storage().instance().get(&StorageKey::TotalSupply).unwrap_or(0)
     }
 
-    /// Returns the amount of tokens held by `account`. Defaults to `0` if no
-    /// balance is stored.
-    ///
-    /// # Arguments
-    ///
-    /// * `e` - Access to the Soroban environment.
-    /// * `account` - The address for which the balance is being queried.
-    pub fn balance(e: &Env, account: &Address) -> i128 {
+    fn balance(e: &Env, account: &Address) -> i128 {
         let key = StorageKey::Balance(account.clone());
         if let Some(balance) = e.storage().persistent().get::<_, i128>(&key) {
             e.storage().persistent().extend_ttl(&key, BALANCE_TTL_THRESHOLD, BALANCE_EXTEND_AMOUNT);
@@ -70,6 +59,69 @@ impl Base {
         }
     }
 
+    fn allowance(e: &Env, owner: &Address, spender: &Address) -> i128 {
+        let AllowanceData { amount, live_until_ledger } = Self::allowance_data(e, owner, spender);
+        if live_until_ledger < e.ledger().sequence() {
+            return 0;
+        }
+        amount
+    }
+
+    fn transfer(e: &Env, from: &Address, to: &Address, amount: i128) {
+        from.require_auth();
+        Base::update(e, Some(from), Some(to), amount);
+    }
+
+    fn transfer_from(e: &Env, spender: &Address, from: &Address, to: &Address, amount: i128) {
+        Self::Impl::transfer_from(e, spender, from, to, amount)
+    }
+
+    fn approve(e: &Env, owner: &Address, spender: &Address, amount: i128, live_until_ledger: u32) {
+        owner.require_auth();
+        Self::set_allowance(e, owner, spender, amount, live_until_ledger);
+    }
+
+    fn decimals(e: &Env) -> u32 {
+        Base::decimals(e)
+    }
+
+    fn name(e: &Env) -> String {
+        Base::name(e)
+    }
+
+    fn symbol(e: &Env) -> String {
+        Base::symbol(e)
+    }
+}
+
+pub struct EventExt<T>(core::marker::PhantomData<T>);
+
+impl<T: FungibleToken> FungibleToken for EventExt<T> {
+    type Impl = T;
+
+    fn approve(e: &Env, owner: &Address, spender: &Address, amount: i128, live_until_ledger: u32) {
+        T::approve(e, owner, spender, amount, live_until_ledger);
+        emit_approve(e, owner, spender, amount, live_until_ledger);
+    }
+
+    fn transfer(e: &Env, from: &soroban_sdk::Address, to: &soroban_sdk::Address, amount: i128) {
+        T::transfer(e, from, to, amount);
+        emit_transfer(e, from, to, amount);
+    }
+
+    fn transfer_from(
+        e: &Env,
+        spender: &soroban_sdk::Address,
+        from: &soroban_sdk::Address,
+        to: &soroban_sdk::Address,
+        amount: i128,
+    ) {
+        T::transfer_from(e, spender, from, to, amount);
+        emit_transfer(e, from, to, amount);
+    }
+}
+
+impl Base {
     /// Returns the amount of tokens a `spender` is allowed to spend on behalf
     /// of an `owner` and the ledger number at which this allowance expires.
     /// Both values default to `0`.
@@ -91,29 +143,6 @@ impl Base {
             .temporary()
             .get(&StorageKey::Allowance(key))
             .unwrap_or(AllowanceData { amount: 0, live_until_ledger: 0 })
-    }
-
-    /// Returns the amount of tokens a `spender` is allowed to spend on behalf
-    /// of an `owner`.
-    ///
-    /// # Arguments
-    ///
-    /// * `e` - Access to Soroban environment.
-    /// * `owner` - The address holding the tokens.
-    /// * `spender` - The address authorized to spend the tokens.
-    ///
-    /// # Notes
-    ///
-    /// An allowance entry where `live_until_ledger` is less than the current
-    /// ledger number is treated as an allowance with amount `0`.
-    pub fn allowance(e: &Env, owner: &Address, spender: &Address) -> i128 {
-        let allowance = Base::allowance_data(e, owner, spender);
-
-        if allowance.live_until_ledger < e.ledger().sequence() {
-            return 0;
-        }
-
-        allowance.amount
     }
 
     /// Returns the token metadata such as decimals, name and symbol.
@@ -170,49 +199,6 @@ impl Base {
     /// * refer to [`get_metadata`] errors.
     pub fn symbol(e: &Env) -> String {
         Base::get_metadata(e).symbol
-    }
-
-    // ################## CHANGE STATE ##################
-
-    /// Sets the amount of tokens a `spender` is allowed to spend on behalf of
-    /// an `owner`. Overrides any existing allowance set between `spender`
-    /// and `owner`.
-    ///
-    /// # Arguments
-    ///
-    /// * `e` - Access to Soroban environment.
-    /// * `owner` - The address holding the tokens.
-    /// * `spender` - The address authorized to spend the tokens.
-    /// * `amount` - The amount of tokens made available to `spender`.
-    /// * `live_until_ledger` - The ledger number at which the allowance
-    ///   expires.
-    ///
-    /// # Errors
-    ///
-    /// * refer to [`set_allowance`] errors.
-    ///
-    /// # Events
-    ///
-    /// * topics - `["approve", from: Address, spender: Address]`
-    /// * data - `[amount: i128, live_until_ledger: u32]`
-    ///
-    /// # Notes
-    ///
-    /// * Authorization for `owner` is required.
-    /// * Allowance is implicitly timebound by the maximum allowed storage TTL
-    ///   value which is a network parameter, i.e. one cannot set an allowance
-    ///   for a longer period. This behavior closely mirrors the functioning of
-    ///   the "Stellar Asset Contract" implementation for consistency reasons.
-    pub fn approve(
-        e: &Env,
-        owner: &Address,
-        spender: &Address,
-        amount: i128,
-        live_until_ledger: u32,
-    ) {
-        owner.require_auth();
-        Base::set_allowance(e, owner, spender, amount, live_until_ledger);
-        emit_approve(e, owner, spender, amount, live_until_ledger);
     }
 
     /// Sets the amount of tokens a `spender` is allowed to spend on behalf of
@@ -323,33 +309,6 @@ impl Base {
                 allowance.live_until_ledger,
             );
         }
-    }
-
-    /// Transfers `amount` of tokens from `from` to `to`.
-    ///
-    /// # Arguments
-    ///
-    /// * `e` - Access to Soroban environment.
-    /// * `from` - The address holding the tokens.
-    /// * `to` - The address receiving the transferred tokens.
-    /// * `amount` - The amount of tokens to be transferred.
-    ///
-    /// # Errors
-    ///
-    /// * refer to [`update`] errors.
-    ///
-    /// # Events
-    ///
-    /// * topics - `["transfer", from: Address, to: Address]`
-    /// * data - `[amount: i128]`
-    ///
-    /// # Notes
-    ///
-    /// Authorization for `from` is required.
-    pub fn transfer(e: &Env, from: &Address, to: &Address, amount: i128) {
-        from.require_auth();
-        Base::update(e, Some(from), Some(to), amount);
-        emit_transfer(e, from, to, amount);
     }
 
     /// Transfers `amount` of tokens from `from` to `to` using the

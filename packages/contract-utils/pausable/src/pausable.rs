@@ -1,5 +1,6 @@
-use soroban_sdk::{contracterror, symbol_short, Address, Env};
+use soroban_sdk::{contracterror, contracttrait, symbol_short, Address, Env};
 
+#[contracttrait(default = PausableDefault, is_extension = true, extension_required = true)]
 pub trait Pausable {
     /// Returns true if the contract is paused, and false otherwise.
     ///
@@ -37,7 +38,7 @@ pub trait Pausable {
     /// intentionally lacks authorization controls. If you want to restrict
     /// who can `pause` the contract, you MUST implement proper
     /// authorization in your contract.
-    fn pause(e: &Env, caller: Address);
+    fn pause(e: &Env, caller: &soroban_sdk::Address);
 
     /// Triggers `Unpaused` state.
     ///
@@ -66,7 +67,7 @@ pub trait Pausable {
     /// intentionally lacks authorization controls. If you want to restrict
     /// who can `unpause` the contract, you MUST implement proper
     /// authorization in your contract.
-    fn unpause(e: &Env, caller: Address);
+    fn unpause(e: &Env, caller: &soroban_sdk::Address);
 }
 
 // ################## ERRORS ##################

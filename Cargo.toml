@@ -33,7 +33,7 @@ repository = "https://github.com/OpenZeppelin/stellar-contracts"
 version = "0.3.0"
 
 [workspace.dependencies]
-soroban-sdk = "22.0.6"
+soroban-sdk = { git = "https://github.com/ahalabs/rs-soroban-sdk", rev = "909b7cd01b58dae3e4bd6fffb432f2e6611c5a52" }
 proc-macro2 = "1.0"
 proptest = "1"
 quote = "1.0"

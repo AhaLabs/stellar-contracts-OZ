@@ -7,6 +7,9 @@ use stellar_event_assertion::EventAssertion;
 
 use crate::Base;
 
+use super::FungibleBurnable;
+use crate::fungible::FungibleToken;
+
 #[contract]
 struct MockContract;
 
