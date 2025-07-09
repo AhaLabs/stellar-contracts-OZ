@@ -11,7 +11,7 @@ crate-type = ["lib", "cdylib"]
 doctest = false
 
 
-[dev-dependencies]
+[dependencies]
 soroban-sdk = { workspace = true, features = ["testutils"] }
 stellar-access-control = { workspace = true }
 stellar-access-control-macros = { workspace = true }

@@ -1,13 +1,13 @@
 #![cfg(test)]
 
 use hex_literal::hex;
-use soroban_sdk::{contract, contractimpl, testutils::Address as _, vec, Address, BytesN, Env};
-use stellar_default_impl_macro::default_impl;
+use soroban_sdk::{contract, contractimpl, derive_contract, testutils::Address as _, vec, Address, BytesN, Env};
 use stellar_fungible::{Base, FungibleToken};
 
 use crate::contract::{AirdropContract, AirdropContractClient};
 
 #[contract]
+#[derive_contract(FungibleToken)]
 pub struct TokenContract;
 
 #[contractimpl]
@@ -21,11 +21,6 @@ impl TokenContract {
     }
 }
 
-#[default_impl]
-#[contractimpl]
-impl FungibleToken for TokenContract {
-    type ContractType = Base;
-}
 
 fn create_token_contract<'a>(e: &Env, owner: &Address) -> TokenContractClient<'a> {
     let address = e.register(TokenContract, (owner, 10_000i128));

@@ -11,12 +11,13 @@ use crate::{
     emit_transfer,
     extensions::consecutive::emit_consecutive_mint,
     sequential::{self as sequential},
-    Base, ContractOverrides, NonFungibleTokenError,
+    Base, non_fungible::NonFungibleToken, NonFungibleTokenError,
 };
 
 pub struct Consecutive;
 
-impl ContractOverrides for Consecutive {
+impl NonFungibleToken for Consecutive {
+    type Impl = Base;
     fn owner_of(e: &Env, token_id: u32) -> Address {
         Consecutive::owner_of(e, token_id)
     }
@@ -38,6 +39,7 @@ impl ContractOverrides for Consecutive {
         approver: &Address,
         approved: &Address,
         token_id: u32,
+
         live_until_ledger: u32,
     ) {
         Consecutive::approve(e, approver, approved, token_id, live_until_ledger);

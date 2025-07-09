@@ -28,7 +28,7 @@ pub use storage::AllowList;
 /// However, this parameter is omitted from the module functions, defined in
 /// "storage.rs", because the authorizations are to be handled in the access
 /// control helpers or directly implemented.
-#[soroban_sdk::contracttrait(default = Base, is_extension = true, extension_required = true)]
+#[soroban_sdk::contracttrait(default = AllowList, is_extension = true, extension_required = true)]
 pub trait FungibleAllowList {
 
     /// Returns the allowed status of an account.

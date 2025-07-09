@@ -1,4 +1,4 @@
-use soroban_sdk::{contractclient, contracterror, Address, BytesN, Env, FromVal, Val};
+use soroban_sdk::{contractclient, contracterror, contracttrait, Address, BytesN, Env, FromVal, Val};
 
 /// High-level trait for contract upgrades.
 ///
@@ -17,6 +17,7 @@ use soroban_sdk::{contractclient, contracterror, Address, BytesN, Env, FromVal, 
 ///    - Provide access control by implementing [`UpgradeableInternal`] with
 ///      your custom logic
 #[contractclient(name = "UpgradeableClient")]
+// #[contracttrait(default = UpgradeableDefault, extension_required = true)]
 pub trait Upgradeable {
     /// Upgrades the contract by setting a new WASM bytecode. The
     /// contract will only be upgraded after the invocation has
@@ -59,6 +60,7 @@ pub trait UpgradeableInternal {
 /// Instead, the contract must define access control via `_require_auth` and
 /// provide its custom migration logic by implementing
 /// `UpgradeableMigratableInternal`.
+// #[contracttrait(default = UpgradeableDefault, extension_required = true)]
 pub trait UpgradeableMigratable: UpgradeableMigratableInternal {
     /// Upgrades the contract by setting a new WASM bytecode. The
     /// contract will only be upgraded after the invocation has

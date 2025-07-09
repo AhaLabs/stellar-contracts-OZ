@@ -1,4 +1,7 @@
 use soroban_sdk::{contracterror, contracttrait, panic_with_error, Address, Env, Symbol};
+use stellar_pausable::Pausable;
+
+use crate::storage::enforce_owner_auth;
 
 /// A trait for managing contract ownership using a 2-step transfer pattern.
 ///
@@ -99,6 +102,11 @@ pub trait Ownable {
         owner.require_auth()
     }
 
+    #[internal]
+    fn enforce_owner_auth(e: &soroban_sdk::Env) {
+        enforce_owner_auth(e);
+    }
+
     /// Sets owner role.
     ///
     /// # Arguments
@@ -114,6 +122,44 @@ pub trait Ownable {
     /// It is expected to call this function only in the constructor!
     #[internal]
     fn set_owner(e: &soroban_sdk::Env, owner: &soroban_sdk::Address);
+}
+
+impl<T: Ownable, N: Pausable> Pausable for OwnableExt<T, N> {
+    type Impl = N;
+
+    /// Triggers paused state.
+    ///
+    /// # Arguments
+    ///
+    /// * `e` - Access to Soroban environment.
+    ///
+    /// # Errors
+    ///
+    /// * refer to [`PausableError::ExpectedPause`] errors.
+    fn pause(e: &Env, _operator: &Address) {
+        // Ensure the operator is authorized to pause the contract.
+        T::enforce_owner_auth(e);
+
+        // Call the implementation's pause function.
+        Self::Impl::pause(e, _operator);
+    }
+
+    /// Triggers unpaused state.
+    ///
+    /// # Arguments
+    ///
+    /// * `e` - Access to Soroban environment.
+    ///
+    /// # Errors
+    ///
+    /// * refer to [`PausableError::EnforcedPause`] errors.
+    fn unpause(e: &Env, _operator: &Address) {
+        // Ensure the operator is authorized to unpause the contract.
+        T::enforce_owner_auth(e);
+
+        // Call the implementation's unpause function.
+        Self::Impl::unpause(e, _operator);
+    }
 }
 
 #[contracterror]

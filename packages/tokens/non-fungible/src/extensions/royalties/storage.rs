@@ -2,7 +2,7 @@ use soroban_sdk::{contracttype, panic_with_error, Address, Env};
 use stellar_constants::{OWNER_EXTEND_AMOUNT, OWNER_TTL_THRESHOLD};
 
 use crate::{
-    royalties::{emit_set_default_royalty, emit_set_token_royalty},
+    royalties::{emit_set_default_royalty, emit_set_token_royalty, NonFungibleRoyalties},
     Base, NonFungibleTokenError,
 };
 
@@ -18,6 +18,46 @@ pub struct RoyaltyInfo {
 pub enum NFTRoyaltiesStorageKey {
     DefaultRoyalty,
     TokenRoyalty(u32),
+}
+
+impl NonFungibleRoyalties for Base {
+    type Impl = Self;
+
+    /// Sets the global default royalty information for the entire collection.
+    /// This will be used for all tokens that don't have specific royalty
+    /// information.
+    ///
+    /// # Arguments
+    ///
+    /// * `e` - Access to the Soroban environment.
+    /// * `receiver` - The address that should receive royalty payments.
+    /// * `basis_points` - The royalty percentage in basis points (100 = 1%,
+    ///   10000 = 100%).
+    fn set_default_royalty(e: &Env, receiver: &Address, basis_points: u32, _operator: &Address) {
+        Base::set_default_royalty(e, receiver, basis_points);
+    }
+
+    /// Sets the royalty information for a specific token.
+    fn set_token_royalty(
+        e: &Env,
+        token_id: u32,
+        receiver: &Address,
+        basis_points: u32,
+        _operator: &Address,
+    ) {
+        Base::set_token_royalty(e, token_id, receiver, basis_points);
+    }
+
+    /// Removes token-specific royalty information.
+    fn remove_token_royalty(e: &Env, token_id: u32, _operator: &Address) {
+        Base::remove_token_royalty(e, token_id);
+    }
+
+    /// Returns `(Address, u32)` - A tuple containing the receiver address and
+    /// the royalty amount.
+    fn royalty_info(e: &Env, token_id: u32, sale_price: i128) -> (Address, i128) {
+        Base::royalty_info(e, token_id, sale_price)
+    }
 }
 
 impl Base {

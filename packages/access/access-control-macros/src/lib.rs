@@ -34,7 +34,7 @@ pub fn only_admin(attrs: TokenStream, input: TokenStream) -> TokenStream {
     let input_fn = parse_macro_input!(input as ItemFn);
 
     // Generate the function with the admin authorization check
-    let auth_check_path = quote! { stellar_access_control::enforce_admin_auth };
+    let auth_check_path = quote! { Self::enforce_admin_auth };
     let expanded = generate_auth_check(&input_fn, auth_check_path);
 
     TokenStream::from(expanded)
@@ -142,7 +142,7 @@ fn generate_role_check(args: TokenStream, input: TokenStream, require_auth: bool
     let expanded = quote! {
         #(#fn_attrs)*
         #fn_vis #fn_sig {
-            stellar_access_control::ensure_role(#env_arg, #param_reference, &soroban_sdk::Symbol::new(#env_arg, #role_str));
+            Self::ensure_role(#env_arg, #param_reference, &soroban_sdk::Symbol::new(#env_arg, #role_str));
             #auth_check
             #fn_block
         }

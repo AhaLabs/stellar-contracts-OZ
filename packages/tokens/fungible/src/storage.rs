@@ -1,10 +1,7 @@
 use soroban_sdk::{contracttype, panic_with_error, symbol_short, Address, Env, String, Symbol};
 use stellar_constants::{BALANCE_EXTEND_AMOUNT, BALANCE_TTL_THRESHOLD};
 
-use crate::{
-    fungible::{emit_approve, emit_mint, emit_transfer, FungibleTokenError},
-    Base,
-};
+use crate::fungible::{emit_approve, emit_mint, emit_transfer, FungibleTokenError};
 
 use super::fungible::FungibleToken;
 
@@ -41,6 +38,8 @@ pub struct Metadata {
     pub name: String,
     pub symbol: String,
 }
+
+pub struct Base;
 
 impl FungibleToken for Base {
     type Impl = EventExt<Self>;

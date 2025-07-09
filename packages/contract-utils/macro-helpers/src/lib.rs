@@ -116,14 +116,15 @@ pub fn generate_auth_check(input_fn: &ItemFn, auth_check_func: TokenStream) -> T
     let fn_attrs = &input_fn.attrs;
     let fn_vis = &input_fn.vis;
     let fn_sig = &input_fn.sig;
-    let fn_block = &input_fn.block;
+    let fn_stmts = &input_fn.block.stmts;
+    
 
     // Generate the expanded function with authorization check
     quote! {
         #(#fn_attrs)*
         #fn_vis #fn_sig {
             #auth_check_func(#env_param);
-            #fn_block
+            #(#fn_stmts)*
         }
     }
 }

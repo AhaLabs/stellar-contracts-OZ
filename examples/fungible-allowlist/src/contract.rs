@@ -5,17 +5,20 @@
 //! controlled token transfers by an admin who can allow or disallow specific
 //! accounts.
 
-use soroban_sdk::{contract, contractimpl, symbol_short, Address, Env, String};
+use soroban_sdk::{contract, contractimpl, derive_contract, symbol_short, Address, Env, String};
 use stellar_access_control::{self as access_control, AccessControl};
 use stellar_access_control_macros::has_role;
-use stellar_default_impl_macro::default_impl;
 use stellar_fungible::{
-    allowlist::{AllowList, FungibleAllowList},
-    burnable::FungibleBurnable,
-    Base, FungibleToken,
+    Base, FungibleAllowList, FungibleAllowListExt, FungibleBurnable, FungibleToken,
 };
 
 #[contract]
+#[derive_contract(
+    AccessControl(default = MyAllowList),
+    FungibleToken(ext = FungibleAllowListExt),
+    FungibleAllowList(default = MyAllowList),
+    FungibleBurnable(ext = FungibleAllowListExt),
+)]
 pub struct ExampleContract;
 
 #[contractimpl]
@@ -28,45 +31,36 @@ impl ExampleContract {
             String::from_str(e, "ALT"),
         );
 
-        access_control::set_admin(e, &admin);
+        Self::set_admin(e, &admin);
 
         // create a role "manager" and grant it to `manager`
         access_control::grant_role_no_auth(e, &admin, &manager, &symbol_short!("manager"));
 
         // Allow the admin to transfer tokens
-        AllowList::allow_user(e, &admin);
+        <Self as FungibleAllowList>::allow_user(e, &admin, &admin);
 
         // Mint initial supply to the admin
         Base::mint(e, &admin, initial_supply);
     }
 }
 
-#[default_impl]
-#[contractimpl]
-impl FungibleToken for ExampleContract {
-    type ContractType = AllowList;
+pub struct MyAllowList;
+
+impl AccessControl for MyAllowList {
+    type Impl = AccessControl!();
 }
-#[contractimpl]
-impl FungibleAllowList for ExampleContract {
-    fn allowed(e: &Env, account: Address) -> bool {
-        AllowList::allowed(e, &account)
+
+impl FungibleAllowList for MyAllowList {
+    
+    type Impl = FungibleAllowList!();
+
+    #[has_role(operator, "manager")]
+    fn allow_user(e: &Env, user: &Address, operator: &Address) {
+        Self::Impl::allow_user(e, user)
     }
 
     #[has_role(operator, "manager")]
-    fn allow_user(e: &Env, user: Address, operator: Address) {
-        AllowList::allow_user(e, &user)
-    }
-
-    #[has_role(operator, "manager")]
-    fn disallow_user(e: &Env, user: Address, operator: Address) {
-        AllowList::disallow_user(e, &user)
+    fn disallow_user(e: &Env, user: &Address, operator: &Address) {
+        Self::Impl::disallow_user(e, user)
     }
 }
-
-#[default_impl]
-#[contractimpl]
-impl AccessControl for ExampleContract {}
-
-#[default_impl]
-#[contractimpl]
-impl FungibleBurnable for ExampleContract {}

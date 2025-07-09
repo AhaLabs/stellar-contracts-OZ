@@ -1,4 +1,4 @@
-use soroban_sdk::{contracterror, symbol_short, Address, Env, String};
+use soroban_sdk::{contracterror, symbol_short, Address, Env};
 
 /// Vanilla Fungible Token Trait
 ///
@@ -190,14 +190,14 @@ pub trait FungibleToken {
     /// # Arguments
     ///
     /// * `e` - Access to Soroban environment.
-    fn name(e: &Env) -> String;
+    fn name(e: &Env) -> soroban_sdk::String;
 
     /// Returns the symbol for this token.
     ///
     /// # Arguments
     ///
     /// * `e` - Access to Soroban environment.
-    fn symbol(e: &Env) -> String;
+    fn symbol(e: &Env) -> soroban_sdk::String;
 }
 
 // ################## ERRORS ##################

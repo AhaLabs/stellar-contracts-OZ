@@ -38,7 +38,7 @@ mod storage;
 pub use crate::{
     ownable::{
         emit_ownership_renounced, emit_ownership_transfer, emit_ownership_transfer_completed,
-        Ownable, OwnableError,
+        Ownable, OwnableError, OwnableExt,
     },
     storage::OwnableStorageKey,
 };
@@ -68,7 +68,7 @@ impl ownable::Ownable for Owner {
         storage::renounce_ownership(e);
     }
 
-    fn set_owner(e: &soroban_sdk::Env,owner: &soroban_sdk::Address) {
+    fn set_owner(e: &soroban_sdk::Env, owner: &soroban_sdk::Address) {
         storage::set_owner(e, owner)
     }
 }

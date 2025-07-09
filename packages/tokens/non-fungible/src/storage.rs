@@ -9,7 +9,6 @@ use crate::{
         MAX_BASE_URI_LEN, MAX_NUM_DIGITS,
     },
     sequential::increment_token_id,
-    Base,
 };
 
 /// Storage container for the token for which an approval is granted
@@ -36,6 +35,78 @@ pub enum NFTStorageKey {
     Approval(u32),
     ApprovalForAll(Address /* owner */, Address /* operator */),
     Metadata,
+}
+
+/// Default marker type
+pub struct Base;
+
+impl crate::non_fungible::NonFungibleToken for Base {
+    type Impl = Self;
+
+    fn balance(e: &Env, account: &soroban_sdk::Address) -> u32 {
+        Self::balance(e, account)
+    }
+
+    fn owner_of(e: &Env, token_id: u32) -> soroban_sdk::Address {
+        Self::owner_of(e, token_id)
+    }
+
+    fn transfer(e: &Env, from: &soroban_sdk::Address, to: &soroban_sdk::Address, token_id: u32) {
+        Self::transfer(e, from, to, token_id)
+    }
+
+    fn transfer_from(
+        e: &Env,
+        spender: &soroban_sdk::Address,
+        from: &soroban_sdk::Address,
+        to: &soroban_sdk::Address,
+        token_id: u32,
+    ) {
+        Self::transfer_from(e, spender, from, to, token_id)
+    }
+
+    fn approve(
+        e: &Env,
+        approver: &soroban_sdk::Address,
+        approved: &soroban_sdk::Address,
+        token_id: u32,
+        live_until_ledger: u32,
+    ) {
+        Self::approve(e, approver, approved, token_id, live_until_ledger)
+    }
+
+    fn approve_for_all(
+        e: &Env,
+        owner: &soroban_sdk::Address,
+        operator: &soroban_sdk::Address,
+        live_until_ledger: u32,
+    ) {
+        Self::approve_for_all(e, owner, operator, live_until_ledger)
+    }
+
+    fn get_approved(e: &Env, token_id: u32) -> Option<soroban_sdk::Address> {
+        Self::Impl::get_approved(e, token_id)
+    }
+
+    fn is_approved_for_all(
+        e: &Env,
+        owner: &soroban_sdk::Address,
+        operator: &soroban_sdk::Address,
+    ) -> bool {
+        Self::Impl::is_approved_for_all(e, owner, operator)
+    }
+
+    fn name(e: &Env) -> String {
+        Self::name(e)
+    }
+
+    fn symbol(e: &Env) -> String {
+        Self::symbol(e)
+    }
+
+    fn token_uri(e: &Env, token_id: u32) -> String {
+        Self::token_uri(e, token_id)
+    }
 }
 
 impl Base {
