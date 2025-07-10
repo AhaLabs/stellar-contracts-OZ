@@ -12,8 +12,8 @@ use stellar_non_fungible::{Base, NonFungibleRoyalties, NonFungibleToken};
 #[contract]
 #[derive_contract(
     NonFungibleToken,
-    NonFungibleRoyalties(default = MyRoyalties),
-    AccessControl(default = MyRoyalties),
+    NonFungibleRoyalties(default = ExampleContract),
+    AccessControl,
 )]
 pub struct ExampleContract;
 
@@ -28,7 +28,7 @@ impl ExampleContract {
         );
 
         // Set default royalty for the entire collection (10%)
-        Base::set_default_royalty(e, &admin, 1000);
+        <NonFungibleRoyalties!()>::set_default_royalty(e, &admin, 1000, &admin);
 
         Self::set_admin(e, &admin);
 
@@ -50,27 +50,22 @@ impl ExampleContract {
         let token_id = Base::sequential_mint(e, &to);
 
         // Set token-specific royalty
-        Base::set_token_royalty(e, token_id, &receiver, basis_points);
+        Base::set_token_royalty(e, token_id, &receiver, basis_points, &receiver);
 
         token_id
     }
 
-    pub fn get_royalty_info(e: &Env, token_id: u32, sale_price: i128) -> (Address, i128) {
-        Base::royalty_info(e, token_id, sale_price)
-    }
+    // pub fn get_royalty_info(e: &Env, token_id: u32, sale_price: i128) -> (Address, i128) {
+    //     <Self::royalty_info(e, token_id, sale_price)
+    // }
 }
 
-pub struct MyRoyalties;
 
-impl AccessControl for MyRoyalties {
-    type Impl = AccessControl!();
-}
-
-impl NonFungibleRoyalties for MyRoyalties {
+impl NonFungibleRoyalties for ExampleContract {
     type Impl = NonFungibleRoyalties!();
     #[has_role(operator, "manager")]
     fn set_default_royalty(e: &Env, receiver: &Address, basis_points: u32, operator: &Address) {
-        Self::Impl::set_default_royalty(e, receiver, basis_points);
+        Self::Impl::set_default_royalty(e, receiver, basis_points, operator);
     }
 
     #[has_role(operator, "manager")]
@@ -81,12 +76,12 @@ impl NonFungibleRoyalties for MyRoyalties {
         basis_points: u32,
         operator: &Address,
     ) {
-        Self::Impl::set_token_royalty(e, token_id, receiver, basis_points);
+        Self::Impl::set_token_royalty(e, token_id, receiver, basis_points, operator);
     }
 
     #[has_role(operator, "manager")]
     fn remove_token_royalty(e: &Env, token_id: u32, operator: &Address) {
-        Self::Impl::remove_token_royalty(e, token_id);
+        Self::Impl::remove_token_royalty(e, token_id, operator);
     }
 
     fn royalty_info(e: &Env, token_id: u32, sale_price: i128) -> (Address, i128) {

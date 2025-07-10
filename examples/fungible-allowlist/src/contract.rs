@@ -14,9 +14,9 @@ use stellar_fungible::{
 
 #[contract]
 #[derive_contract(
-    AccessControl(default = MyAllowList),
+    AccessControl,
     FungibleToken(ext = FungibleAllowListExt),
-    FungibleAllowList(default = MyAllowList),
+    FungibleAllowList(default = ExampleContract),
     FungibleBurnable(ext = FungibleAllowListExt),
 )]
 pub struct ExampleContract;
@@ -37,30 +37,23 @@ impl ExampleContract {
         access_control::grant_role_no_auth(e, &admin, &manager, &symbol_short!("manager"));
 
         // Allow the admin to transfer tokens
-        <Self as FungibleAllowList>::allow_user(e, &admin, &admin);
+        <Self as FungibleAllowList>::allow_user(e, &admin, &manager);
 
         // Mint initial supply to the admin
         Base::mint(e, &admin, initial_supply);
     }
 }
 
-pub struct MyAllowList;
-
-impl AccessControl for MyAllowList {
-    type Impl = AccessControl!();
-}
-
-impl FungibleAllowList for MyAllowList {
-    
+impl FungibleAllowList for ExampleContract {
     type Impl = FungibleAllowList!();
 
     #[has_role(operator, "manager")]
     fn allow_user(e: &Env, user: &Address, operator: &Address) {
-        Self::Impl::allow_user(e, user)
+        Self::Impl::allow_user(e, user, operator)
     }
 
     #[has_role(operator, "manager")]
     fn disallow_user(e: &Env, user: &Address, operator: &Address) {
-        Self::Impl::disallow_user(e, user)
+        Self::Impl::disallow_user(e, user, operator)
     }
 }

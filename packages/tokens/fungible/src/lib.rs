@@ -79,7 +79,10 @@ pub use extensions::{allowlist, blocklist, burnable, capped};
 
 pub use extensions::{allowlist::*, blocklist::*, burnable::*};
 pub use fungible::*;
-pub use storage::{AllowanceData, AllowanceKey, StorageKey, Base};
-pub use utils::{sac_admin_generic, sac_admin_wrapper, sac_admin_wrapper::SACAdminWrapper};
+pub use storage::{AllowanceData, AllowanceKey, Base, StorageKey};
+pub use utils::{
+    sac_admin_generic, sac_admin_wrapper,
+    sac_admin_wrapper::{DefaultSacAdminWrapper, SACAdminWrapper},
+};
 
 mod test;

@@ -8,10 +8,10 @@
 //! control to sensitive operations is not taken into consideration!
 
 use soroban_sdk::{contract, contractimpl, testutils::Address as _, Address, Env, String};
-use stellar_default_impl_macro::default_impl;
-use stellar_non_fungible::{burnable::NonFungibleBurnable, Base, NonFungibleToken};
+use stellar_non_fungible::{Base, NonFungibleBurnable, NonFungibleToken};
 
 #[contract]
+#[soroban_sdk::derive_contract(NonFungibleToken, NonFungibleBurnable)]
 pub struct ExampleContract;
 
 #[contractimpl]
@@ -29,16 +29,6 @@ impl ExampleContract {
         Base::mint(e, &to, token_id);
     }
 }
-
-#[default_impl]
-#[contractimpl]
-impl NonFungibleToken for ExampleContract {
-    type ContractType = Base;
-}
-
-#[default_impl]
-#[contractimpl]
-impl NonFungibleBurnable for ExampleContract {}
 
 fn create_client<'a>(e: &Env) -> ExampleContractClient<'a> {
     let address = e.register(ExampleContract, ());

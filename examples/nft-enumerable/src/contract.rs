@@ -5,7 +5,9 @@
 //! IDs owned by each account.
 
 use soroban_sdk::{contract, contractimpl, contracttype, derive_contract, Address, Env, String};
-use stellar_non_fungible::{enumerable::Enumerable, Base, NonFungibleBurnable, NonFungibleToken};
+use stellar_non_fungible::{
+    enumerable::Enumerable, Base, NonFungibleBurnable, NonFungibleEnumerable, NonFungibleToken,
+};
 use stellar_ownable::Ownable;
 
 #[contracttype]
@@ -17,6 +19,7 @@ pub enum DataKey {
 #[derive_contract(
     NonFungibleToken(default = Enumerable),
     NonFungibleBurnable(default = Enumerable),
+    NonFungibleEnumerable,
     Ownable,
 )]
 pub struct ExampleContract;

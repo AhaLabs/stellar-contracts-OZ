@@ -147,7 +147,13 @@ pub trait NonFungibleToken {
     ///
     /// * topics - `["transfer", from: Address, to: Address]`
     /// * data - `[token_id: u32]`
-    fn transfer_from(e: &Env, spender: &soroban_sdk::Address, from: &soroban_sdk::Address, to: &soroban_sdk::Address, token_id: u32);
+    fn transfer_from(
+        e: &Env,
+        spender: &soroban_sdk::Address,
+        from: &soroban_sdk::Address,
+        to: &soroban_sdk::Address,
+        token_id: u32,
+    );
 
     /// Gives permission to `approved` to transfer the token with `token_id` to
     /// another account. The approval is cleared when the token is
@@ -211,7 +217,12 @@ pub trait NonFungibleToken {
     ///
     /// * topics - `["approve_for_all", from: Address]`
     /// * data - `[operator: Address, live_until_ledger: u32]`
-    fn approve_for_all(e: &Env, owner: &soroban_sdk::Address, operator: &soroban_sdk::Address, live_until_ledger: u32);
+    fn approve_for_all(
+        e: &Env,
+        owner: &soroban_sdk::Address,
+        operator: &soroban_sdk::Address,
+        live_until_ledger: u32,
+    );
 
     /// Returns the account approved for the token with `token_id`.
     ///
@@ -234,7 +245,11 @@ pub trait NonFungibleToken {
     /// * `e` - Access to the Soroban environment.
     /// * `owner` - Account of the token's owner.
     /// * `operator` - Account to be checked.
-    fn is_approved_for_all(e: &Env, owner: &soroban_sdk::Address, operator: &soroban_sdk::Address) -> bool;
+    fn is_approved_for_all(
+        e: &Env,
+        owner: &soroban_sdk::Address,
+        operator: &soroban_sdk::Address,
+    ) -> bool;
 
     /// Returns the token collection name.
     ///

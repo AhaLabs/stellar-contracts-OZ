@@ -9,13 +9,10 @@
 //! [`stellar_fungible::fungible::FungibleToken`] and
 //! [`stellar_fungible::burnable::FungibleBurnable`].
 
-use soroban_sdk::{
-    contract, contracterror, contractimpl, derive_contract, panic_with_error, symbol_short, Address, Env, String, Symbol
-};
-use stellar_fungible::{FungibleBurnable, impl_token_interface, Base, FungibleToken};
-use stellar_pausable::{Pausable, PausableExt};
+use soroban_sdk::{contract, contractimpl, derive_contract, Address, Env, String};
+use stellar_fungible::{impl_token_interface, Base, FungibleBurnable, FungibleToken};
 use stellar_ownable::{Ownable, OwnableExt};
-
+use stellar_pausable::{Pausable, PausableExt};
 
 #[contract]
 #[derive_contract(
@@ -40,7 +37,6 @@ impl ExampleContract {
         Base::mint(e, &account, amount);
     }
 }
-
 
 // NOTE: if your contract implements `FungibleToken` and `FungibleBurnable`,
 // and you also want your contract to implement

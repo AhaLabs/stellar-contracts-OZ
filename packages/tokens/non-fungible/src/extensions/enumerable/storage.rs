@@ -4,20 +4,23 @@ use stellar_constants::{
 };
 
 use crate::{
-    burnable::NonFungibleBurnable, enumerable::NonFungibleEnumerable, non_fungible::{emit_mint, NonFungibleToken}, Base, ContractOverrides, NonFungibleTokenError
+    burnable::NonFungibleBurnable,
+    enumerable::NonFungibleEnumerable,
+    non_fungible::{emit_mint, NonFungibleToken},
+    Base, NonFungibleTokenError,
 };
 
 pub struct Enumerable;
 
-impl ContractOverrides for Enumerable {
-    fn transfer(e: &Env, from: &Address, to: &Address, token_id: u32) {
-        Enumerable::transfer(e, from, to, token_id);
-    }
+// impl ContractOverrides for Enumerable {
+//     fn transfer(e: &Env, from: &Address, to: &Address, token_id: u32) {
+//         Enumerable::transfer(e, from, to, token_id);
+//     }
 
-    fn transfer_from(e: &Env, spender: &Address, from: &Address, to: &Address, token_id: u32) {
-        Enumerable::transfer_from(e, spender, from, to, token_id);
-    }
-}
+//     fn transfer_from(e: &Env, spender: &Address, from: &Address, to: &Address, token_id: u32) {
+//         Enumerable::transfer_from(e, spender, from, to, token_id);
+//     }
+// }
 
 #[contracttype]
 pub struct OwnerTokensKey {

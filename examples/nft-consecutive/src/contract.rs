@@ -3,7 +3,7 @@
 //! Demonstrates an example usage of the Consecutive extension, enabling
 //! efficient batch minting in a single transaction.
 
-use soroban_sdk::{contract, contractimpl, contracttype, derive_contract, Address, Env, String};
+use soroban_sdk::{contract, contractimpl, derive_contract, Address, Env, String};
 use stellar_non_fungible::{consecutive::Consecutive, Base, NonFungibleBurnable, NonFungibleToken};
 use stellar_ownable::Ownable;
 

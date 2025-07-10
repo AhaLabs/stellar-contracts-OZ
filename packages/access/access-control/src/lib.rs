@@ -147,7 +147,6 @@ impl crate::access_control::AccessControl for AccessControlDefault {
     }
 
     fn transfer_admin_role(e: &Env, new_admin: &Address, live_until_ledger: u32){
-        enforce_admin_auth(e);
         transfer_admin_role(e, new_admin, live_until_ledger);
     }
 
@@ -156,12 +155,15 @@ impl crate::access_control::AccessControl for AccessControlDefault {
     }   
 
     fn set_role_admin(e: &Env, role: &Symbol, admin_role: &Symbol){
-        enforce_admin_auth(e);
         set_role_admin(e, role, admin_role);
     }
 
     fn renounce_admin(e: &Env){
         renounce_admin(e);
+    }
+
+    fn grant_role_no_auth(e: &Env, caller: &Address, account: &Address, role: &Symbol) {
+        grant_role_no_auth(e, caller, account, role);
     }
 }
 

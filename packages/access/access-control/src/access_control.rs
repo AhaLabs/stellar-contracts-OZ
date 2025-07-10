@@ -14,7 +14,7 @@ pub trait AccessControl {
     /// * `e` - Access to Soroban environment.
     /// * `account` - The account to check.
     /// * `role` - The role to check for.
-    fn has_role(e: &Env, account: &Address, role: &soroban_sdk::Symbol) -> Option<u32>;
+    fn has_role(e: &Env, account: &soroban_sdk::Address, role: &soroban_sdk::Symbol) -> Option<u32>;
 
     /// Returns the total number of accounts that have the specified role.
     /// If the role does not exist, returns 0.
@@ -268,6 +268,9 @@ pub trait AccessControl {
             soroban_sdk::panic_with_error!(e, AccessControlError::Unauthorized);
         }
     }
+
+    #[internal]
+    fn grant_role_no_auth(e: &Env, caller: &Address, account: &Address, role: &Symbol);
 }
 
 #[contracterror]

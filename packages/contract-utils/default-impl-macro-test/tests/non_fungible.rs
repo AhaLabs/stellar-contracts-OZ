@@ -1,8 +1,8 @@
-use soroban_sdk::{contract, contractimpl, testutils::Address as _, Address, Env, String};
-use stellar_default_impl_macro::default_impl;
+use soroban_sdk::{contract, contractimpl, derive_contract, testutils::Address as _, Address, Env, String};
 use stellar_non_fungible::{Base, NonFungibleToken};
 
 #[contract]
+#[derive_contract(NonFungibleToken)]
 pub struct ExampleContract;
 
 #[contractimpl]
@@ -19,12 +19,6 @@ impl ExampleContract {
     pub fn mint(e: &Env, to: Address, token_id: u32) {
         Base::mint(e, &to, token_id);
     }
-}
-
-#[default_impl]
-#[contractimpl]
-impl NonFungibleToken for ExampleContract {
-    type ContractType = Base;
 }
 
 fn create_client<'a>(e: &Env) -> ExampleContractClient<'a> {

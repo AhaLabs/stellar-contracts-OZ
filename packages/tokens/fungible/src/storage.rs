@@ -42,7 +42,7 @@ pub struct Metadata {
 pub struct Base;
 
 impl FungibleToken for Base {
-    type Impl = EventExt<Self>;
+    type Impl = Self;
 
     fn total_supply(e: &Env) -> i128 {
         e.storage().instance().get(&StorageKey::TotalSupply).unwrap_or(0)
@@ -69,15 +69,18 @@ impl FungibleToken for Base {
     fn transfer(e: &Env, from: &Address, to: &Address, amount: i128) {
         from.require_auth();
         Base::update(e, Some(from), Some(to), amount);
+        emit_transfer(e, from, to, amount);
     }
 
     fn transfer_from(e: &Env, spender: &Address, from: &Address, to: &Address, amount: i128) {
-        Self::Impl::transfer_from(e, spender, from, to, amount)
+        Self::Impl::transfer_from(e, spender, from, to, amount);
+        emit_transfer(e, from, to, amount);
     }
 
     fn approve(e: &Env, owner: &Address, spender: &Address, amount: i128, live_until_ledger: u32) {
         owner.require_auth();
         Self::set_allowance(e, owner, spender, amount, live_until_ledger);
+        emit_approve(e, owner, spender, amount, live_until_ledger);
     }
 
     fn decimals(e: &Env) -> u32 {
@@ -90,33 +93,6 @@ impl FungibleToken for Base {
 
     fn symbol(e: &Env) -> String {
         Base::symbol(e)
-    }
-}
-
-pub struct EventExt<T>(core::marker::PhantomData<T>);
-
-impl<T: FungibleToken> FungibleToken for EventExt<T> {
-    type Impl = T;
-
-    fn approve(e: &Env, owner: &Address, spender: &Address, amount: i128, live_until_ledger: u32) {
-        T::approve(e, owner, spender, amount, live_until_ledger);
-        emit_approve(e, owner, spender, amount, live_until_ledger);
-    }
-
-    fn transfer(e: &Env, from: &soroban_sdk::Address, to: &soroban_sdk::Address, amount: i128) {
-        T::transfer(e, from, to, amount);
-        emit_transfer(e, from, to, amount);
-    }
-
-    fn transfer_from(
-        e: &Env,
-        spender: &soroban_sdk::Address,
-        from: &soroban_sdk::Address,
-        to: &soroban_sdk::Address,
-        amount: i128,
-    ) {
-        T::transfer_from(e, spender, from, to, amount);
-        emit_transfer(e, from, to, amount);
     }
 }
 

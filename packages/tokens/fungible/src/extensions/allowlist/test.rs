@@ -3,11 +3,8 @@ extern crate std;
 use soroban_sdk::{contract, testutils::Address as _, Address, Env};
 
 use crate::{
-    extensions::allowlist::FungibleAllowListExt,
-    extensions::{
-        allowlist::{storage::AllowList},
-        burnable::FungibleBurnable,
-    },
+    extensions::allowlist::{FungibleAllowList, FungibleAllowListExt},
+    extensions::{allowlist::storage::AllowList, burnable::FungibleBurnable},
     fungible::FungibleToken,
     Base,
 };
@@ -30,7 +27,7 @@ fn allow_user_works() {
         assert!(!AllowList::allowed(&e, &user));
 
         // Allow user
-        AllowList::allow_user(&e, &user);
+        AllowList::allow_user(&e, &user, &user);
 
         // Verify user is allowed
         assert!(AllowList::allowed(&e, &user));
@@ -46,13 +43,13 @@ fn disallow_user_works() {
 
     e.as_contract(&address, || {
         // Allow user first
-        AllowList::allow_user(&e, &user);
+        AllowList::allow_user(&e, &user, &user);
         assert!(AllowList::allowed(&e, &user));
     });
 
     e.as_contract(&address, || {
         // Disallow user
-        AllowList::disallow_user(&e, &user);
+        AllowList::disallow_user(&e, &user, &user);
 
         // Verify user is not allowed
         assert!(!AllowList::allowed(&e, &user));
@@ -69,8 +66,8 @@ fn transfer_with_allowed_users_works() {
 
     e.as_contract(&address, || {
         // Allow both users
-        AllowList::allow_user(&e, &user1);
-        AllowList::allow_user(&e, &user2);
+        AllowList::allow_user(&e, &user1, &user1);
+        AllowList::allow_user(&e, &user2, &user1);
 
         // Mint tokens to user1
         Base::mint(&e, &user1, 100);
@@ -93,7 +90,7 @@ fn allowlist_burn_override_works() {
 
     e.as_contract(&address, || {
         // Allow user first
-        AllowList::allow_user(&e, &user);
+        AllowList::allow_user(&e, &user, &user);
 
         // Mint tokens to user
         Base::mint(&e, &user, 100);
@@ -116,7 +113,7 @@ fn allowlist_burn_from_override_works() {
 
     e.as_contract(&address, || {
         // Allow user1 first
-        AllowList::allow_user(&e, &user1);
+        AllowList::allow_user(&e, &user1, &user1);
 
         // Mint tokens to user1
         Base::mint(&e, &user1, 100);
@@ -143,7 +140,7 @@ fn transfer_with_sender_not_allowed_panics() {
 
     e.as_contract(&address, || {
         // Allow only user2
-        AllowList::allow_user(&e, &user2);
+        AllowList::allow_user(&e, &user2, &user1);
 
         // Mint tokens to user1
         Base::mint(&e, &user1, 100);
@@ -164,7 +161,7 @@ fn transfer_with_receiver_not_allowed_panics() {
 
     e.as_contract(&address, || {
         // Allow only user1
-        AllowList::allow_user(&e, &user1);
+        AllowList::allow_user(&e, &user1, &user1);
 
         // Mint tokens to user1
         Base::mint(&e, &user1, 100);

@@ -2,7 +2,7 @@ use soroban_sdk::{Address, Env};
 
 use crate::{burnable::NonFungibleBurnable, extensions::burnable::emit_burn, Base};
 
-impl NonFungibleBurnable for  Base {
+impl NonFungibleBurnable for Base {
     type Impl = Self;
     /// Destroys the token with `token_id` from `from`, ensuring ownership
     /// checks, and emits a `burn` event.

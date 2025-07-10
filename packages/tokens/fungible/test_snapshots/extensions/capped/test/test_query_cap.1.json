@@ -1,14 +1,15 @@
 {
   "generators": {
     "address": 1,
-    "nonce": 0
+    "nonce": 0,
+    "mux_id": 0
   },
   "auth": [
     [],
     []
   ],
   "ledger": {
-    "protocol_version": 22,
+    "protocol_version": 23,
     "sequence_number": 0,
     "timestamp": 0,
     "network_id": "0000000000000000000000000000000000000000000000000000000000000000",
@@ -45,10 +46,7 @@
                           "symbol": "CAP"
                         },
                         "val": {
-                          "i128": {
-                            "hi": 0,
-                            "lo": 1000
-                          }
+                          "i128": "1000"
                         }
                       }
                     ]

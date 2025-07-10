@@ -2,22 +2,19 @@
 //!
 //! Demonstrates an example usage of the NFT default base implementation.
 
-use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, String};
-use stellar_default_impl_macro::default_impl;
-use stellar_non_fungible::{burnable::NonFungibleBurnable, Base, NonFungibleToken};
+use soroban_sdk::{contract, contractimpl, derive_contract, Address, Env, String};
 
-#[contracttype]
-pub enum DataKey {
-    Owner,
-}
+use stellar_non_fungible::{Base, NonFungibleBurnable, NonFungibleToken};
+use stellar_ownable::Ownable;
 
 #[contract]
+#[derive_contract(NonFungibleToken, Ownable, NonFungibleBurnable)]
 pub struct ExampleContract;
 
 #[contractimpl]
 impl ExampleContract {
     pub fn __constructor(e: &Env, owner: Address) {
-        e.storage().instance().set(&DataKey::Owner, &owner);
+        Self::set_owner(e, &owner);
         Base::set_metadata(
             e,
             String::from_str(e, "www.mytoken.com"),
@@ -27,19 +24,7 @@ impl ExampleContract {
     }
 
     pub fn mint(e: &Env, to: Address) -> u32 {
-        let owner: Address =
-            e.storage().instance().get(&DataKey::Owner).expect("owner should be set");
-        owner.require_auth();
+        Self::enforce_owner_auth(e);
         Base::sequential_mint(e, &to)
     }
 }
-
-#[default_impl]
-#[contractimpl]
-impl NonFungibleToken for ExampleContract {
-    type ContractType = Base;
-}
-
-#[default_impl]
-#[contractimpl]
-impl NonFungibleBurnable for ExampleContract {}

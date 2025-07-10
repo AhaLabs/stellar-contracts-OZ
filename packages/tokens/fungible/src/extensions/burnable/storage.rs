@@ -1,10 +1,9 @@
 use soroban_sdk::{Address, Env};
 
-use crate::{burnable::FungibleBurnable, extensions::burnable::emit_burn, storage::EventExt, Base};
-
+use crate::{extensions::burnable::emit_burn, Base};
 
 impl super::FungibleBurnable for Base {
-    type Impl = EventExt<Base>;
+    type Impl = Base;
     /// Destroys `amount` of tokens from `from`. Updates the total
     /// supply accordingly.
     ///
@@ -29,6 +28,7 @@ impl super::FungibleBurnable for Base {
     fn burn(e: &Env, from: &Address, amount: i128) {
         from.require_auth();
         Base::update(e, Some(from), None, amount);
+        emit_burn(e, from, amount);
     }
 
     /// Destroys `amount` of tokens from `from` using the allowance mechanism.
@@ -60,19 +60,6 @@ impl super::FungibleBurnable for Base {
         spender.require_auth();
         Base::spend_allowance(e, from, spender, amount);
         Base::update(e, Some(from), None, amount);
-    }
-}
-
-impl<T: FungibleBurnable> FungibleBurnable for EventExt<T> {
-    type Impl = T::Impl;
-
-    fn burn(e: &Env, from: &Address, amount: i128) {
-        T::burn(e, from, amount);
-        emit_burn(e, from, amount);
-    }
-
-    fn burn_from(e: &Env, spender: &Address, from: &Address, amount: i128) {
-        T::burn_from(e, spender, from, amount);
         emit_burn(e, from, amount);
     }
 }

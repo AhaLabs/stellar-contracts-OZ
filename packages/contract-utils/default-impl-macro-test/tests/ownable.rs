@@ -25,7 +25,6 @@ impl ExampleContract {
 
     #[only_owner]
     pub fn mint(e: &Env, to: Address, amount: i128) {
-        // Self::only_owner(e);
         Base::mint(e, &to, amount);
     }
 }
