@@ -4,6 +4,7 @@ use stellar_constants::{OWNER_EXTEND_AMOUNT, OWNER_TTL_THRESHOLD};
 use crate::{
     royalties::{emit_set_default_royalty, emit_set_token_royalty, NonFungibleRoyalties},
     Base, NonFungibleTokenError,
+    non_fungible::NonFungibleToken,
 };
 
 /// Storage container for royalty information

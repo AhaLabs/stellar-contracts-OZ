@@ -277,6 +277,117 @@ pub trait NonFungibleToken {
     ///
     /// If the token does not exist, this function is expected to panic.
     fn token_uri(e: &Env, token_id: u32) -> String;
+
+    /// Creates a token with the provided `token_id` and assigns it to
+    /// `to`.
+    ///
+    /// # Arguments
+    ///
+    /// * `e` - Access to the Soroban environment.
+    /// * `to` - The address receiving the new token.
+    /// * `token_id` - The token_id of the new token.
+    ///
+    /// # Errors
+    ///
+    /// * refer to [`update`] errors.
+    ///
+    /// # Events
+    ///
+    /// * topics - `["mint", to: Address]`
+    /// * data - `[token_id: u32]`
+    ///
+    /// # Security Warning
+    ///
+    /// ⚠️ SECURITY RISK: This function has NO AUTHORIZATION CONTROLS ⚠️
+    ///
+    /// It is the responsibility of the implementer to establish appropriate
+    /// access controls to ensure that only authorized accounts can execute
+    /// minting operations. Failure to implement proper authorization could
+    /// lead to security vulnerabilities and unauthorized token creation.
+    ///
+    /// You probably want to do something like this (pseudo-code):
+    ///
+    /// ```ignore
+    /// let admin = read_administrator(e);
+    /// admin.require_auth();
+    /// ```
+    ///
+    /// **IMPORTANT**: This function does NOT verify whether the provided
+    /// `token_id` already exists. It is the developer's responsibility to
+    /// ensure `token_id` uniqueness before passing it to this function. The
+    /// strategy for generating `token_id`s varies by project and must be
+    /// implemented accordingly.
+    #[internal]
+    fn internal_mint(e: &Env, to: &soroban_sdk::Address, token_id: u32);
+    /// Creates a token with the next available `token_id` and assigns it to
+    /// `to`. Returns the `token_id` for the newly minted token.
+    ///
+    /// # Arguments
+    ///
+    /// * `e` - Access to the Soroban environment.
+    /// * `to` - The address receiving the new token.
+    ///
+    /// # Errors
+    ///
+    /// * refer to [`increment_token_id`] errors.
+    /// * refer to [`update`] errors.
+    ///
+    /// # Events
+    ///
+    /// * topics - `["mint", to: Address]`
+    /// * data - `[token_id: u32]`
+    ///
+    /// # Security Warning
+    ///
+    /// ⚠️ SECURITY RISK: This function has NO AUTHORIZATION CONTROLS ⚠️
+    ///
+    /// It is the responsibility of the implementer to establish appropriate
+    /// access controls to ensure that only authorized accounts can execute
+    /// minting operations. Failure to implement proper authorization could
+    /// lead to security vulnerabilities and unauthorized token creation.
+    ///
+    /// You probably want to do something like this (pseudo-code):
+    ///
+    /// ```ignore
+    /// let admin = read_administrator(e);
+    /// admin.require_auth();
+    /// ```
+    ///
+    /// **IMPORTANT**: This function utilizes [`increment_token_id()`] to
+    /// determine the next `token_id`, but it does NOT check if that
+    /// `token_id` is already in use. If the developer has other means of
+    /// minting tokens and generating `token_id`s, they should ensure that
+    /// the `token_id` is unique and not already in use.
+    #[internal]
+    fn sequential_mint(e: &Env, to: &soroban_sdk::Address) -> u32;
+
+    /// Sets the token metadata such as token collection URI, name and symbol.
+    ///
+    /// # Arguments
+    ///
+    /// * `e` - Access to the Soroban environment.
+    /// * `base_uri` - The base collection URI, assuming it's a valid URI and
+    ///   ends with `/`.
+    /// * `name` - The token collection name.
+    /// * `symbol` - The token collection symbol.
+    ///
+    /// # Errors
+    ///
+    /// * [`NonFungibleTokenError::BaseUriMaxLenExceeded`] - If the length of
+    ///   `base_uri` exceeds the maximum allowed.
+    ///
+    /// # Notes
+    ///
+    /// **IMPORTANT**: This function lacks authorization controls. Most likely,
+    /// you want to invoke it from a constructor or from another function
+    /// with admin-only authorization.
+    #[internal]
+    fn set_metadata(
+        e: &Env,
+        base_uri: soroban_sdk::String,
+        name: soroban_sdk::String,
+        symbol: soroban_sdk::String,
+    );
 }
 
 // ################## ERRORS ##################

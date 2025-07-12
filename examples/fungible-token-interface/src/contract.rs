@@ -10,7 +10,7 @@
 //! [`stellar_fungible::burnable::FungibleBurnable`].
 
 use soroban_sdk::{contract, contractimpl, derive_contract, Address, Env, String};
-use stellar_fungible::{impl_token_interface, Base, FungibleBurnable, FungibleToken};
+use stellar_fungible::{impl_token_interface, FungibleBurnable, FungibleToken};
 use stellar_ownable::{Ownable, OwnableExt};
 use stellar_pausable::{Pausable, PausableExt};
 
@@ -26,15 +26,15 @@ pub struct ExampleContract;
 #[contractimpl]
 impl ExampleContract {
     pub fn __constructor(e: &Env, owner: Address, initial_supply: i128) {
-        Base::set_metadata(e, 18, String::from_str(e, "My Token"), String::from_str(e, "TKN"));
+        Self::set_metadata(e, 18, String::from_str(e, "My Token"), String::from_str(e, "TKN"));
         Self::set_owner(e, &owner);
-        Base::mint(e, &owner, initial_supply);
+        Self::internal_mint(e, &owner, initial_supply);
     }
 
     pub fn mint(e: &Env, account: Address, amount: i128) {
         Self::when_not_paused(e);
         Self::enforce_owner_auth(e);
-        Base::mint(e, &account, amount);
+        Self::internal_mint(e, &account, amount);
     }
 }
 

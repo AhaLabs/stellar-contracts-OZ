@@ -4,7 +4,7 @@
 
 use soroban_sdk::{contract, contractimpl, derive_contract, Address, Env, String};
 
-use stellar_non_fungible::{Base, NonFungibleBurnable, NonFungibleToken};
+use stellar_non_fungible::{NonFungibleBurnable, NonFungibleToken};
 use stellar_ownable::Ownable;
 
 #[contract]
@@ -15,7 +15,7 @@ pub struct ExampleContract;
 impl ExampleContract {
     pub fn __constructor(e: &Env, owner: Address) {
         Self::set_owner(e, &owner);
-        Base::set_metadata(
+        Self::set_metadata(
             e,
             String::from_str(e, "www.mytoken.com"),
             String::from_str(e, "My Token"),
@@ -25,6 +25,6 @@ impl ExampleContract {
 
     pub fn mint(e: &Env, to: Address) -> u32 {
         Self::enforce_owner_auth(e);
-        Base::sequential_mint(e, &to)
+        Self::sequential_mint(e, &to)
     }
 }

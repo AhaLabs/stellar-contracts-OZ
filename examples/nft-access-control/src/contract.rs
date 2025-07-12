@@ -5,7 +5,7 @@
 use soroban_sdk::{contract, contractimpl, derive_contract, vec, Address, Env, String, Vec};
 use stellar_access_control::{set_admin, AccessControl};
 use stellar_access_control_macros::{has_any_role, has_role, only_admin, only_any_role, only_role};
-use stellar_non_fungible::{Base, NonFungibleBurnable, NonFungibleToken};
+use stellar_non_fungible::{NonFungibleBurnable, NonFungibleToken};
 
 #[contract]
 #[derive_contract(
@@ -19,7 +19,7 @@ pub struct ExampleContract;
 impl ExampleContract {
     pub fn __constructor(e: &Env, admin: Address) {
         set_admin(e, &admin);
-        Base::set_metadata(
+        Self::set_metadata(
             e,
             String::from_str(e, "www.mytoken.com"),
             String::from_str(e, "My Token"),
@@ -33,10 +33,10 @@ impl ExampleContract {
     }
 
     // we want `require_auth()` provided by the macro, since there is no
-    // `require_auth()` in `Base::mint`.
+    // `require_auth()` in `Self::mint`.
     #[only_role(caller, "minter")]
     pub fn mint(e: &Env, caller: Address, to: Address, token_id: u32) {
-        Base::mint(e, &to, token_id)
+        Self::internal_mint(e, &to, token_id)
     }
 
     // allows either minter or burner role, does not enforce `require_auth` in the
@@ -63,11 +63,11 @@ impl NonFungibleBurnable for ExampleContract {
     // `require_auth()` in `Base::burn`
     #[has_role(from, "burner")]
     fn burn(e: &Env, from: &Address, token_id: u32) {
-        Base::burn(e, from, token_id);
+        Self::Impl::burn(e, from, token_id);
     }
 
     #[has_role(spender, "burner")]
     fn burn_from(e: &Env, spender: &Address, from: &Address, token_id: u32) {
-        Base::burn_from(e, spender, from, token_id);
+        Self::Impl::burn_from(e, spender, from, token_id);
     }
 }

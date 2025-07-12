@@ -60,7 +60,6 @@ use soroban_sdk::{contracterror, symbol_short, Address, Env};
 /// [`crate::extensions::allowlist::AllowList::transfer`].
 #[soroban_sdk::contracttrait(default = Base)]
 pub trait FungibleToken {
-    
     /// Helper type that allows us to override some of the functionality of the
     /// base trait based on the extensions implemented. You should use
     /// [`crate::Base`] as the type if you are not using
@@ -198,6 +197,61 @@ pub trait FungibleToken {
     ///
     /// * `e` - Access to Soroban environment.
     fn symbol(e: &Env) -> soroban_sdk::String;
+
+    // ### Internal Methods ###
+
+    /// Creates `amount` of tokens and assigns them to `to`. Updates
+    /// the total supply accordingly.
+    ///
+    /// # Arguments
+    ///
+    /// * `e` - Access to the Soroban environment.
+    /// * `to` - The address receiving the new tokens.
+    /// * `amount` - The amount of tokens to mint.
+    ///
+    /// # Errors
+    ///
+    /// refer to [`update`] errors.
+    ///
+    /// # Events
+    ///
+    /// * topics - `["mint", to: Address]`
+    /// * data - `[amount: i128]`
+    ///
+    /// # Security Warning
+    ///
+    /// ⚠️ SECURITY RISK: This function has NO AUTHORIZATION CONTROLS ⚠️
+    ///
+    /// It is the responsibility of the implementer to establish appropriate
+    /// access controls to ensure that only authorized accounts can execute
+    /// minting operations. Failure to implement proper authorization could
+    /// lead to security vulnerabilities and unauthorized token creation.
+    ///
+    /// You probably want to do something like this (pseudo-code):
+    ///
+    /// ```ignore
+    /// let admin = read_administrator(e);
+    /// admin.require_auth();
+    /// ```
+    #[internal]
+    fn internal_mint(e: &Env, to: &soroban_sdk::Address, amount: i128);
+
+    /// Sets the token metadata such as decimals, name and symbol.
+    ///
+    /// # Arguments
+    ///
+    /// * `e` - Access to the Soroban environment.
+    /// * `decimals` - The number of decimals.
+    /// * `name` - The name of the token.
+    /// * `symbol` - The symbol of the token.
+    ///
+    /// # Notes
+    ///
+    /// **IMPORTANT**: This function lacks authorization controls. You want to
+    /// invoke it most likely from a constructor or from another function with
+    /// admin-only authorization.
+    #[internal]
+    fn set_metadata(e: &Env, decimals: u32, name: soroban_sdk::String, symbol: soroban_sdk::String);
 }
 
 // ################## ERRORS ##################

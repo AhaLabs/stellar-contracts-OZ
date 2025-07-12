@@ -6,11 +6,9 @@
 //! accounts.
 
 use soroban_sdk::{contract, contractimpl, derive_contract, symbol_short, Address, Env, String};
-use stellar_access_control::{self as access_control, AccessControl};
+use stellar_access_control::AccessControl;
 use stellar_access_control_macros::has_role;
-use stellar_fungible::{
-    Base, FungibleAllowList, FungibleAllowListExt, FungibleBurnable, FungibleToken,
-};
+use stellar_fungible::{FungibleAllowList, FungibleAllowListExt, FungibleBurnable, FungibleToken};
 
 #[contract]
 #[derive_contract(
@@ -24,7 +22,7 @@ pub struct ExampleContract;
 #[contractimpl]
 impl ExampleContract {
     pub fn __constructor(e: &Env, admin: Address, manager: Address, initial_supply: i128) {
-        Base::set_metadata(
+        Self::set_metadata(
             e,
             18,
             String::from_str(e, "AllowList Token"),
@@ -34,13 +32,13 @@ impl ExampleContract {
         Self::set_admin(e, &admin);
 
         // create a role "manager" and grant it to `manager`
-        access_control::grant_role_no_auth(e, &admin, &manager, &symbol_short!("manager"));
+        Self::grant_role_no_auth(e, &admin, &manager, &symbol_short!("manager"));
 
         // Allow the admin to transfer tokens
         <Self as FungibleAllowList>::allow_user(e, &admin, &manager);
 
         // Mint initial supply to the admin
-        Base::mint(e, &admin, initial_supply);
+        Self::internal_mint(e, &admin, initial_supply);
     }
 }
 

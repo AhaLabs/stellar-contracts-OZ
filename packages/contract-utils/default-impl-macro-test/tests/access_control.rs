@@ -18,7 +18,7 @@ impl ExampleContract {
 
     #[has_role(caller, "minter")]
     pub fn mint(e: &Env, caller: Address, to: Address, amount: i128) {
-        Base::mint(e, &to, amount);
+        Base::internal_mint(e, &to, amount);
     }
 }
 

@@ -1,4 +1,4 @@
-use soroban_sdk::{contractclient, contracterror, contracttrait, Address, BytesN, Env, FromVal, Val};
+use soroban_sdk::{contractclient, contracterror, Address, BytesN, Env, FromVal, Val};
 
 /// High-level trait for contract upgrades.
 ///
@@ -17,7 +17,7 @@ use soroban_sdk::{contractclient, contracterror, contracttrait, Address, BytesN,
 ///    - Provide access control by implementing [`UpgradeableInternal`] with
 ///      your custom logic
 #[contractclient(name = "UpgradeableClient")]
-// #[contracttrait(default = UpgradeableDefault, extension_required = true)]
+#[soroban_sdk::contracttrait(default = UpgradeableDefault, extension_required = true)]
 pub trait Upgradeable {
     /// Upgrades the contract by setting a new WASM bytecode. The
     /// contract will only be upgraded after the invocation has
@@ -29,7 +29,20 @@ pub trait Upgradeable {
     /// * `new_wasm_hash` - A 32-byte hash identifying the new WASM blob,
     ///   uploaded to the ledger.
     /// * `operator` - The authorized address performing the upgrade.
-    fn upgrade(e: &Env, new_wasm_hash: BytesN<32>, operator: Address);
+    fn upgrade(e: &Env, new_wasm_hash: BytesN<32>, operator: Option<soroban_sdk::Address>);
+}
+
+#[soroban_sdk::contracttrait(default = UpgradeableDefault, extension_required = true)]
+pub trait MigrationUpgradeable<T: FromVal<Env, Val>> {
+    /// Entry point to handle a contract migration.
+    ///
+    /// # Arguments
+    ///
+    /// * `e` - The Soroban environment.
+    /// * `migration_data` - Arbitrary data passed to the migration logic.
+    /// * `operator` - The authorized address performing the upgrade and the
+    ///   migration.
+    fn migrate(e: &Env, migration_data: T, operator: Address);
 }
 
 /// Trait to be implemented for a custom upgrade authorization mechanism.

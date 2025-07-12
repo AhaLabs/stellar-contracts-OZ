@@ -113,9 +113,12 @@ pub fn generate_auth_check(input_fn: &mut ItemFn, auth_check_func: TokenStream) 
     // Get the environment parameter
     let env_param = parse_env_arg(input_fn);
 
-    input_fn.block.stmts.insert(0,  syn::parse_quote! {
-        #auth_check_func(#env_param);
-    });
+    input_fn.block.stmts.insert(
+        0,
+        syn::parse_quote! {
+            #auth_check_func(#env_param);
+        },
+    );
 }
 
 pub fn add_auth_check(input_fn: syn::Item, auth_check_func: TokenStream) -> TokenStream {
@@ -126,8 +129,22 @@ pub fn add_auth_check(input_fn: syn::Item, auth_check_func: TokenStream) -> Toke
     // Get the environment parameter
     let env_param = parse_env_arg(&input_fn);
 
-    input_fn.block.stmts.insert(0,  syn::parse_quote! {
+    input_fn.insert_stmts_to_token_stream(syn::parse_quote! {
         #auth_check_func(#env_param);
-    });
-    input_fn.to_token_stream()
+    })
+}
+
+pub trait FunctionInsert: ToTokens {
+    fn insert_stmts(&mut self, stmts:Vec<syn::Stmt>);
+
+    fn insert_stmts_to_token_stream(&mut self, stmts: Vec<syn::Stmt>) -> TokenStream {
+        self.insert_stmts(stmts);
+        self.to_token_stream()
+    }
+}
+
+impl FunctionInsert for ItemFn {
+    fn insert_stmts(&mut self, stmts: Vec<syn::Stmt>) {
+        self.block.stmts.splice(0..0, stmts.into_iter());
+    }
 }

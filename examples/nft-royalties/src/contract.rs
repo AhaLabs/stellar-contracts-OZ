@@ -7,7 +7,7 @@
 use soroban_sdk::{contract, contractimpl, derive_contract, symbol_short, Address, Env, String};
 use stellar_access_control::AccessControl;
 use stellar_access_control_macros::has_role;
-use stellar_non_fungible::{Base, NonFungibleRoyalties, NonFungibleToken};
+use stellar_non_fungible::{NonFungibleRoyalties, NonFungibleToken};
 
 #[contract]
 #[derive_contract(
@@ -20,7 +20,7 @@ pub struct ExampleContract;
 #[contractimpl]
 impl ExampleContract {
     pub fn __constructor(e: &Env, admin: Address, manager: Address) {
-        Base::set_metadata(
+        Self::set_metadata(
             e,
             String::from_str(e, "https://example.com/nft/"),
             String::from_str(e, "Royalty NFT"),
@@ -40,17 +40,23 @@ impl ExampleContract {
     pub fn mint(e: &Env, to: Address) -> u32 {
         Self::enforce_admin_auth(e);
         // Mint token with sequential ID
-        Base::sequential_mint(e, &to)
+        Self::sequential_mint(e, &to)
     }
 
     // #[only_admin]
     pub fn mint_with_royalty(e: &Env, to: Address, receiver: Address, basis_points: u32) -> u32 {
         // Mint token with sequential ID
         Self::enforce_admin_auth(e);
-        let token_id = Base::sequential_mint(e, &to);
+        let token_id = Self::sequential_mint(e, &to);
 
         // Set token-specific royalty
-        Base::set_token_royalty(e, token_id, &receiver, basis_points, &receiver);
+        <Self as NonFungibleRoyalties>::set_token_royalty(
+            e,
+            token_id,
+            &receiver,
+            basis_points,
+            &receiver,
+        );
 
         token_id
     }
@@ -59,7 +65,6 @@ impl ExampleContract {
     //     <Self::royalty_info(e, token_id, sale_price)
     // }
 }
-
 
 impl NonFungibleRoyalties for ExampleContract {
     type Impl = NonFungibleRoyalties!();

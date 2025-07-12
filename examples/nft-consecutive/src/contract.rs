@@ -4,7 +4,7 @@
 //! efficient batch minting in a single transaction.
 
 use soroban_sdk::{contract, contractimpl, derive_contract, Address, Env, String};
-use stellar_non_fungible::{consecutive::Consecutive, Base, NonFungibleBurnable, NonFungibleToken};
+use stellar_non_fungible::{consecutive::Consecutive, NonFungibleBurnable, NonFungibleToken};
 use stellar_ownable::Ownable;
 
 
@@ -20,7 +20,7 @@ pub struct ExampleContract;
 impl ExampleContract {
     pub fn __constructor(e: &Env, owner: Address) {
         Self::set_owner(e, &owner);
-        Base::set_metadata(
+        Self::set_metadata(
             e,
             String::from_str(e, "www.mytoken.com"),
             String::from_str(e, "My Token"),

@@ -5,6 +5,7 @@
 
 use soroban_sdk::{contract, contractimpl, contracttype, derive_contract, Address, Env};
 use stellar_ownable::Ownable;
+use stellar_ownable_macro::only_owner;
 
 #[contracttype]
 pub enum DataKey {
@@ -23,8 +24,8 @@ impl ExampleContract {
         e.storage().instance().set(&DataKey::Counter, &0);
     }
 
+    #[only_owner]
     pub fn increment(e: &Env) -> i32 {
-        Self::only_owner(e);
         let mut counter: i32 =
             e.storage().instance().get(&DataKey::Counter).expect("counter should be set");
 

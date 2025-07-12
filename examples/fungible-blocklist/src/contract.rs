@@ -10,7 +10,7 @@ use soroban_sdk::{
 };
 use stellar_access_control::AccessControl;
 use stellar_access_control_macros::has_role;
-use stellar_fungible::{Base, FungibleBlockList, FungibleBlockListExt, FungibleToken};
+use stellar_fungible::{FungibleBlockList, FungibleBlockListExt, FungibleToken};
 
 #[contract]
 #[derive_contract(
@@ -30,7 +30,7 @@ pub enum ExampleContractError {
 #[contractimpl]
 impl ExampleContract {
     pub fn __constructor(e: &Env, admin: Address, manager: Address, initial_supply: i128) {
-        Base::set_metadata(
+        Self::set_metadata(
             e,
             18,
             String::from_str(e, "BlockList Token"),
@@ -44,7 +44,7 @@ impl ExampleContract {
         <Self as AccessControl>::grant_role(e, &admin, &manager, &symbol_short!("manager"));
 
         // Mint initial supply to the admin
-        Base::mint(e, &admin, initial_supply);
+        Self::internal_mint(e, &admin, initial_supply);
     }
 }
 

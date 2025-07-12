@@ -10,7 +10,7 @@
 use soroban_sdk::{contract, contractimpl, derive_contract, Address, Env};
 use stellar_fungible::{
     capped::{check_cap, set_cap},
-    Base, FungibleToken,
+    FungibleToken,
 };
 
 #[contract]
@@ -25,6 +25,6 @@ impl ExampleContract {
 
     pub fn mint(e: &Env, account: Address, amount: i128) {
         check_cap(e, amount);
-        Base::mint(e, &account, amount);
+        Self::internal_mint(e, &account, amount);
     }
 }

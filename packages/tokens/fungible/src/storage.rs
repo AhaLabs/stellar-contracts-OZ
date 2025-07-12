@@ -68,12 +68,14 @@ impl FungibleToken for Base {
 
     fn transfer(e: &Env, from: &Address, to: &Address, amount: i128) {
         from.require_auth();
-        Base::update(e, Some(from), Some(to), amount);
+        Self::update(e, Some(from), Some(to), amount);
         emit_transfer(e, from, to, amount);
     }
 
     fn transfer_from(e: &Env, spender: &Address, from: &Address, to: &Address, amount: i128) {
-        Self::Impl::transfer_from(e, spender, from, to, amount);
+        spender.require_auth();
+        Self::spend_allowance(e, from, spender, amount);
+        Self::update(e, Some(from), Some(to), amount);
         emit_transfer(e, from, to, amount);
     }
 
@@ -84,15 +86,25 @@ impl FungibleToken for Base {
     }
 
     fn decimals(e: &Env) -> u32 {
-        Base::decimals(e)
+        Self::get_metadata(e).decimals
     }
 
     fn name(e: &Env) -> String {
-        Base::name(e)
+        Self::get_metadata(e).name
     }
 
     fn symbol(e: &Env) -> String {
-        Base::symbol(e)
+        Self::get_metadata(e).symbol
+    }
+
+    fn set_metadata(e: &Env, decimals: u32, name: String, symbol: String) {
+        let metadata = Metadata { decimals, name, symbol };
+        e.storage().instance().set(&METADATA_KEY, &metadata);
+    }
+
+    fn internal_mint(e: &Env, to: &Address, amount: i128) {
+        Self::update(e, None, Some(to), amount);
+        emit_mint(e, to, amount);
     }
 }
 
@@ -135,45 +147,6 @@ impl Base {
             .instance()
             .get(&METADATA_KEY)
             .unwrap_or_else(|| panic_with_error!(e, FungibleTokenError::UnsetMetadata))
-    }
-
-    /// Returns the token decimals.
-    ///
-    /// # Arguments
-    ///
-    /// * `e` - Access to the Soroban environment.
-    ///
-    /// # Errors
-    ///
-    /// * refer to [`get_metadata`] errors.
-    pub fn decimals(e: &Env) -> u32 {
-        Base::get_metadata(e).decimals
-    }
-
-    /// Returns the token name.
-    ///
-    /// # Arguments
-    ///
-    /// * `e` - Access to the Soroban environment.
-    ///
-    /// # Errors
-    ///
-    /// * refer to [`get_metadata`] errors.
-    pub fn name(e: &Env) -> String {
-        Base::get_metadata(e).name
-    }
-
-    /// Returns the token symbol.
-    ///
-    /// # Arguments
-    ///
-    /// * `e` - Access to the Soroban environment.
-    ///
-    /// # Errors
-    ///
-    /// * refer to [`get_metadata`] errors.
-    pub fn symbol(e: &Env) -> String {
-        Base::get_metadata(e).symbol
     }
 
     /// Sets the amount of tokens a `spender` is allowed to spend on behalf of
@@ -286,38 +259,6 @@ impl Base {
         }
     }
 
-    /// Transfers `amount` of tokens from `from` to `to` using the
-    /// allowance mechanism. `amount` is then deducted from `spender`s
-    /// allowance.
-    ///
-    /// # Arguments
-    ///
-    /// * `e` - Access to Soroban environment.
-    /// * `spender` - The address authorizing the transfer, and having its
-    ///   allowance consumed during the transfer.
-    /// * `from` - The address holding the tokens which will be transferred.
-    /// * `to` - The address receiving the transferred tokens.
-    /// * `amount` - The amount of tokens to be transferred.
-    ///
-    /// # Errors
-    ///
-    /// * refer to [`spend_allowance`] errors.
-    /// * refer to [`update`] errors.
-    ///
-    /// # Events
-    ///
-    /// * topics - `["transfer", from: Address, to: Address]`
-    /// * data - `[amount: i128]`
-    ///
-    /// # Notes
-    ///
-    /// Authorization for `spender` is required.
-    pub fn transfer_from(e: &Env, spender: &Address, from: &Address, to: &Address, amount: i128) {
-        spender.require_auth();
-        Base::spend_allowance(e, from, spender, amount);
-        Base::update(e, Some(from), Some(to), amount);
-        emit_transfer(e, from, to, amount);
-    }
 
     /// Transfers `amount` of tokens from `from` to `to` or alternatively
     /// mints (or burns) tokens if `from` (or `to`) is `None`. Updates the total
@@ -374,62 +315,5 @@ impl Base {
             let total_supply = Base::total_supply(e) - amount;
             e.storage().instance().set(&StorageKey::TotalSupply, &total_supply);
         }
-    }
-
-    /// Creates `amount` of tokens and assigns them to `to`. Updates
-    /// the total supply accordingly.
-    ///
-    /// # Arguments
-    ///
-    /// * `e` - Access to the Soroban environment.
-    /// * `to` - The address receiving the new tokens.
-    /// * `amount` - The amount of tokens to mint.
-    ///
-    /// # Errors
-    ///
-    /// refer to [`update`] errors.
-    ///
-    /// # Events
-    ///
-    /// * topics - `["mint", to: Address]`
-    /// * data - `[amount: i128]`
-    ///
-    /// # Security Warning
-    ///
-    /// ⚠️ SECURITY RISK: This function has NO AUTHORIZATION CONTROLS ⚠️
-    ///
-    /// It is the responsibility of the implementer to establish appropriate
-    /// access controls to ensure that only authorized accounts can execute
-    /// minting operations. Failure to implement proper authorization could
-    /// lead to security vulnerabilities and unauthorized token creation.
-    ///
-    /// You probably want to do something like this (pseudo-code):
-    ///
-    /// ```ignore
-    /// let admin = read_administrator(e);
-    /// admin.require_auth();
-    /// ```
-    pub fn mint(e: &Env, to: &Address, amount: i128) {
-        Base::update(e, None, Some(to), amount);
-        emit_mint(e, to, amount);
-    }
-
-    /// Sets the token metadata such as decimals, name and symbol.
-    ///
-    /// # Arguments
-    ///
-    /// * `e` - Access to the Soroban environment.
-    /// * `decimals` - The number of decimals.
-    /// * `name` - The name of the token.
-    /// * `symbol` - The symbol of the token.
-    ///
-    /// # Notes
-    ///
-    /// **IMPORTANT**: This function lacks authorization controls. You want to
-    /// invoke it most likely from a constructor or from another function with
-    /// admin-only authorization.
-    pub fn set_metadata(e: &Env, decimals: u32, name: String, symbol: String) {
-        let metadata = Metadata { decimals, name, symbol };
-        e.storage().instance().set(&METADATA_KEY, &metadata);
     }
 }

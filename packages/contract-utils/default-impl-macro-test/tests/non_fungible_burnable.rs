@@ -26,7 +26,7 @@ impl ExampleContract {
     }
 
     pub fn mint(e: &Env, to: Address, token_id: u32) {
-        Base::mint(e, &to, token_id);
+        Base::internal_mint(e, &to, token_id);
     }
 }
 

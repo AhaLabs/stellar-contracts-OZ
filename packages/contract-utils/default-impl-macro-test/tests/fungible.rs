@@ -12,7 +12,7 @@ impl ExampleContract {
     }
 
     pub fn mint(e: &Env, to: Address, amount: i128) {
-        Base::mint(e, &to, amount);
+        Base::internal_mint(e, &to, amount);
     }
 }
 

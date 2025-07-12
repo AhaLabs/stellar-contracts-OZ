@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
-use quote::{quote, ToTokens};
-use stellar_macro_helpers::{add_auth_check, parse_env_arg};
+use quote::{quote};
+use stellar_macro_helpers::{add_auth_check, parse_env_arg, FunctionInsert};
 use syn::{
     bracketed,
     parse::{Parse, ParseStream},
@@ -126,19 +126,12 @@ fn generate_role_check(args: TokenStream, input: TokenStream, require_auth: bool
         quote! { &#param_name }
     };
 
-    let auth_check = if require_auth {
-        quote! { #param_name.require_auth(); }
-    } else {
-        quote! {}
-    };
+    let auth_check = require_auth.then(|| quote! { #param_name.require_auth(); });
 
-    let combined_checks: Vec<syn::Stmt> = syn::parse_quote! {
-        Self::ensure_role(#env_arg, #param_reference, &soroban_sdk::Symbol::new(#env_arg, #role_str));        #auth_check
-    };
-
-    input_fn.block.stmts.splice(0..0, combined_checks.into_iter());
-
-    TokenStream::from(input_fn.to_token_stream())
+    input_fn.insert_stmts_to_token_stream(syn::parse_quote! {
+        Self::ensure_role(#env_arg, #param_reference, &soroban_sdk::Symbol::new(#env_arg, #role_str));
+        #auth_check
+    }).into()
 }
 
 struct HasRoleArgs {
@@ -307,19 +300,13 @@ fn generate_any_role_check(
         quote! { &#param_name }
     };
 
-    let auth_check = if require_auth {
-        quote! { #param_name.require_auth(); }
-    } else {
-        quote! {}
-    };
+    let auth_check = require_auth.then(|| quote! { #param_name.require_auth(); });
 
-    let combined_checks: Vec<syn::Stmt> = syn::parse_quote! {
+    input_fn.insert_stmts_to_token_stream(syn::parse_quote! {
         let has_any_role = [#(#roles),*].iter().any(|role| <Self as AccessControl>::has_role(#env_arg, #param_reference, &soroban_sdk::Symbol::new(#env_arg, role)).is_some());
         if !has_any_role {
             panic!("Account does not have any of the required roles");
         }
         #auth_check
-    };
-    input_fn.block.stmts.splice(0..0, combined_checks.into_iter());
-    TokenStream::from(input_fn.to_token_stream())
+    }).into()
 }
