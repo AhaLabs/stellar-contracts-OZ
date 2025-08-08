@@ -1,4 +1,6 @@
-use soroban_sdk::{contracttype, panic_with_error, symbol_short, Address, Env, String, Symbol};
+use soroban_sdk::{
+    assert_with_error, contracttype, panic_with_error, symbol_short, Address, Env, String, Symbol,
+};
 
 use super::FungibleToken;
 use crate::fungible::{
@@ -188,9 +190,7 @@ impl FTBase {
         amount: i128,
         live_until_ledger: u32,
     ) {
-        if amount < 0 {
-            panic_with_error!(e, FungibleTokenError::LessThanZero);
-        }
+        assert_with_error!(e, amount >= 0, FungibleTokenError::LessThanZero);
 
         let current_ledger = e.ledger().sequence();
 

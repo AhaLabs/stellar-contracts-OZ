@@ -351,9 +351,11 @@ pub trait AccessControl {
     ///   the specified role.
     #[internal]
     fn ensure_role(e: &Env, caller: &soroban_sdk::Address, role: &soroban_sdk::Symbol) {
-        if Self::has_role(e, caller, role).is_none() {
-            soroban_sdk::panic_with_error!(e, AccessControllerror::Unauthorized);
-        }
+        assert_with_error!(
+            e,
+            Self::has_role(e, caller, role).is_some(),
+            AccessControllerror::Unauthorized
+        )
     }
 
     #[internal]
@@ -374,9 +376,7 @@ pub trait AccessControl {
             None => false,
         };
 
-        if !is_admin && !is_admin_role {
-            soroban_sdk::panic_with_error!(e, AccessControllerror::Unauthorized);
-        }
+        assert_with_error!(e, is_admin || is_admin_role, AccessControllerror::Unauthorized);
     }
 
     #[internal]

@@ -1,4 +1,4 @@
-use soroban_sdk::{contracttype, panic_with_error, Env};
+use soroban_sdk::{assert_with_error, contracttype, panic_with_error, Env};
 
 use super::Pausable;
 use crate::pausable::{emit_paused, emit_unpaused, PausableError};
@@ -140,9 +140,7 @@ pub fn unpause(e: &Env) {
 /// * [`PausableError::EnforcedPause`] - Occurs when the contract is already in
 ///   `Paused` state.
 pub fn when_not_paused(e: &Env) {
-    if paused(e) {
-        panic_with_error!(e, PausableError::EnforcedPause);
-    }
+    assert_with_error(e, paused(e), PausableError::EnforcedPause);
 }
 
 /// Helper to make a function callable only when the contract is paused.
@@ -156,7 +154,5 @@ pub fn when_not_paused(e: &Env) {
 /// * [`PausableError::ExpectedPause`] - Occurs when the contract is already in
 ///   `Unpaused` state.
 pub fn when_paused(e: &Env) {
-    if !paused(e) {
-        panic_with_error!(e, PausableError::ExpectedPause);
-    }
+    assert_with_error(e, paused(e), PausableError::ExpectedPause);
 }

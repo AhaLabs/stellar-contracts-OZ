@@ -1,4 +1,4 @@
-use soroban_sdk::{contracttype, panic_with_error, Address, Env};
+use soroban_sdk::{assert_with_error, contracttype, panic_with_error, Address, Env};
 
 use crate::{
     ownable::{
@@ -42,20 +42,22 @@ impl Ownable for Owner {
     fn renounce_ownership(e: &Env) {
         let owner = Self::enforce_owner_auth(e);
         let key = OwnableStorageKey::PendingOwner;
-
-        if e.storage().temporary().get::<_, Address>(&key).is_some() {
-            panic_with_error!(e, OwnableError::TransferInProgress);
-        }
-
+        assert_with_error!(
+            e,
+            e.storage().temporary().get::<_, Address>(&key).is_none(),
+            OwnableError::TransferInProgress
+        );
         e.storage().instance().remove(&OwnableStorageKey::Owner);
         emit_ownership_renounced(e, &owner);
     }
 
     fn set_owner(e: &Env, owner: &Address) {
         // Check if owner is already set
-        if e.storage().instance().has(&OwnableStorageKey::Owner) {
-            panic_with_error!(e, OwnableError::OwnerAlreadySet);
-        }
+        assert_with_error!(
+            e,
+            !e.storage().instance().has(&OwnableStorageKey::Owner),
+            OwnableError::OwnerAlreadySet
+        );
         e.storage().instance().set(&OwnableStorageKey::Owner, &owner);
     }
 }

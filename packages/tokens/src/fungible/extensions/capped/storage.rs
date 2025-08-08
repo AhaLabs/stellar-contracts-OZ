@@ -1,4 +1,4 @@
-use soroban_sdk::{panic_with_error, symbol_short, Env, Symbol};
+use soroban_sdk::{assert_with_error, panic_with_error, symbol_short, Env, Symbol};
 
 use crate::fungible::{FungibleTokenError, StorageKey};
 
@@ -30,9 +30,7 @@ pub const CAP_KEY: Symbol = symbol_short!("CAP");
 ///   later, and setting a lower cap ahead of time effectively prevents any
 ///   further minting until the total supply falls below the new cap.
 pub fn set_cap(e: &Env, cap: i128) {
-    if cap < 0 {
-        panic_with_error!(e, FungibleTokenError::InvalidCap);
-    }
+    assert_with_error!(e, cap >= 0, FungibleTokenError::InvalidCap);
     e.storage().instance().set(&CAP_KEY, &cap);
 }
 
@@ -73,7 +71,5 @@ pub fn check_cap(e: &Env, amount: i128) {
     let Some(sum) = total_supply.checked_add(amount) else {
         panic_with_error!(e, FungibleTokenError::MathOverflow);
     };
-    if cap < sum {
-        panic_with_error!(e, FungibleTokenError::ExceededCap);
-    }
+    assert_with_error!(e, cap >= sum, FungibleTokenError::ExceededCap);
 }

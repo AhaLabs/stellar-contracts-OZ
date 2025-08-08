@@ -1,4 +1,4 @@
-use soroban_sdk::{contracttype, panic_with_error, Address, Env, Symbol};
+use soroban_sdk::{assert_with_error, contracttype, panic_with_error, Address, Env, Symbol};
 
 use crate::{
     access_control::{
@@ -96,9 +96,11 @@ impl AccessControl for AccessController {
     }
 
     fn ensure_role(e: &Env, caller: &soroban_sdk::Address, role: &soroban_sdk::Symbol) {
-        if Self::has_role(e, caller, role).is_none() {
-            soroban_sdk::panic_with_error!(e, AccessControllerror::Unauthorized);
-        }
+        assert_with_error!(
+            e,
+            Self::has_role(e, caller, role).is_some(),
+            AccessControllerror::Unauthorized
+        );
     }
 
     fn ensure_if_admin_or_admin_role(
@@ -106,17 +108,10 @@ impl AccessControl for AccessController {
         caller: &soroban_sdk::Address,
         role: &soroban_sdk::Symbol,
     ) {
-        let is_admin = match Self::get_admin(e) {
-            Some(admin) => caller == &admin,
-            None => false,
-        };
-        let is_admin_role = match Self::get_role_admin(e, role) {
-            Some(admin_role) => Self::has_role(e, caller, &admin_role).is_some(),
-            None => false,
-        };
-        if !is_admin && !is_admin_role {
-            soroban_sdk::panic_with_error!(e, AccessControllerror::Unauthorized);
-        }
+        let is_admin = Self::get_admin(e).is_some_and(|admin| caller == &admin);
+        let is_admin_role = Self::get_role_admin(e, role)
+            .is_some_and(|admin_role| Self::has_role(e, caller, &admin_role).is_some());
+        assert_with_error!(e, is_admin || is_admin_role, AccessControllerror::Unauthorized);
     }
 
     fn grant_role_no_auth(e: &Env, caller: &Address, account: &Address, role: &Symbol) {
@@ -237,9 +232,11 @@ pub fn get_role_admin(e: &Env, role: &Symbol) -> Option<Symbol> {
 /// It is expected to call this function only in the constructor!
 pub fn set_admin(e: &Env, admin: &Address) {
     // Check if admin is already set
-    if e.storage().instance().has(&AccessControlStorageKey::Admin) {
-        panic_with_error!(e, AccessControllerror::AdminAlreadySet);
-    }
+    assert_with_error!(
+        e,
+        !e.storage().instance().has(&AccessControlStorageKey::Admin),
+        AccessControllerror::AdminAlreadySet
+    );
     e.storage().instance().set(&AccessControlStorageKey::Admin, &admin);
 }
 
@@ -370,9 +367,7 @@ pub fn revoke_role(e: &Env, caller: &Address, account: &Address, role: &Symbol) 
 /// risks as it could allow unauthorized role revocations.
 pub fn revoke_role_no_auth(e: &Env, caller: &Address, account: &Address, role: &Symbol) {
     // Check if account has the role
-    if has_role(e, account, role).is_none() {
-        panic_with_error!(e, AccessControllerror::RoleNotHeld);
-    }
+    assert_with_error!(e, has_role(e, account, role).is_some(), AccessControllerror::RoleNotHeld);
 
     remove_from_role_enumeration(e, account, role);
 
@@ -410,9 +405,7 @@ pub fn renounce_role(e: &Env, caller: &Address, role: &Symbol) {
     caller.require_auth();
 
     // Check if account has the role
-    if has_role(e, caller, role).is_none() {
-        panic_with_error!(e, AccessControllerror::RoleNotHeld);
-    }
+    assert_with_error!(e, has_role(e, caller, role).is_some(), AccessControllerror::RoleNotHeld);
 
     remove_from_role_enumeration(e, caller, role);
 
@@ -665,7 +658,7 @@ pub fn ensure_if_admin_or_admin_role(e: &Env, caller: &Address, role: &Symbol) {
         None => false,
     };
 
-    if !is_admin && !is_admin_role {
+    assert_with_error!( is_admin && !is_admin_role {
         panic_with_error!(e, AccessControllerror::Unauthorized);
     }
 }
@@ -735,9 +728,7 @@ pub fn remove_from_role_enumeration(e: &Env, account: &Address, role: &Symbol) {
     // Get the current count of accounts with this role
     let count_key = AccessControlStorageKey::RoleAccountsCount(role.clone());
     let count = e.storage().persistent().get(&count_key).unwrap_or(0);
-    if count == 0 {
-        panic_with_error!(e, AccessControllerror::RoleIsEmpty);
-    }
+    assert_with_error!(e,count != 0 ,AccessControllerror::RoleIsEmpty);
 
     // Get the index of the account to remove
     let to_be_removed_has_role_key =

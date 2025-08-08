@@ -1,4 +1,6 @@
-use soroban_sdk::{contracttype, panic_with_error, xdr::ToXdr, BytesN, Env, Vec};
+use soroban_sdk::{
+    assert_with_error, contracttype, panic_with_error, xdr::ToXdr, BytesN, Env, Vec,
+};
 
 use crate::{
     crypto::{hasher::Hasher, merkle::Verifier},
@@ -132,9 +134,11 @@ where
         let (root, leaf_hash, index) = Self::get_verification_args(e, leaf);
 
         // Check if already claimed
-        if Self::is_claimed(e, index) {
-            panic_with_error!(e, MerkleDistributorError::IndexAlreadyClaimed);
-        }
+        assert_with_error!(
+            e,
+            !Self::is_claimed(e, index),
+            MerkleDistributorError::IndexAlreadyClaimed
+        );
 
         // Verify proof
         match Verifier::<H>::verify(e, proof, root, leaf_hash) {
@@ -171,9 +175,11 @@ where
         let (root, leaf_hash, index) = Self::get_verification_args(e, leaf);
 
         // Check if already claimed
-        if Self::is_claimed(e, index) {
-            panic_with_error!(e, MerkleDistributorError::IndexAlreadyClaimed);
-        }
+        assert_with_error!(
+            e,
+            !Self::is_claimed(e, index),
+            MerkleDistributorError::IndexAlreadyClaimed
+        );
 
         // Verify proof
         match Verifier::<H>::verify_with_index(e, proof, root, leaf_hash, index) {

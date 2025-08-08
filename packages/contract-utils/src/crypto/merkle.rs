@@ -2,7 +2,7 @@
 //! from [rust-contracts-stylus](https://github.com/OpenZeppelin/rust-contracts-stylus/blob/main/lib/crypto/src/merkle.rs) to work with Soroban contract.
 use core::marker::PhantomData;
 
-use soroban_sdk::{panic_with_error, BytesN, Env, Vec};
+use soroban_sdk::{assert_with_error, panic_with_error, BytesN, Env, Vec};
 
 use crate::crypto::{
     error::CryptoError,
@@ -90,12 +90,8 @@ where
     ) -> bool {
         // validate proof length and index range
         let len = proof.len();
-        if len >= 32 {
-            panic_with_error!(e, CryptoError::MerkleProofOutOfBounds)
-        }
-        if index >= (1 << len) {
-            panic_with_error!(e, CryptoError::MerkleIndexOutOfBounds)
-        }
+        assert_with_error!(e, len < 32, CryptoError::MerkleProofOutOfBounds);
+        assert_with_error!(e, index < (1 << len), CryptoError::MerkleIndexOutOfBounds);
 
         // hash without sorting
         for hash in proof {

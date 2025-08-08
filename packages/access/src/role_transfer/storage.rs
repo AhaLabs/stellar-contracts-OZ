@@ -1,4 +1,4 @@
-use soroban_sdk::{panic_with_error, Address, Env, IntoVal, Val};
+use soroban_sdk::{assert_with_error, panic_with_error, Address, Env, IntoVal, Val};
 
 use crate::role_transfer::RoleTransferError;
 
@@ -44,19 +44,18 @@ where
         let Some(pending) = e.storage().temporary().get::<T, Address>(pending_key) else {
             panic_with_error!(e, RoleTransferError::NoPendingTransfer);
         };
-        if pending != *new {
-            panic_with_error!(e, RoleTransferError::InvalidPendingAccount);
-        }
+        assert_with_error!(e, pending == *new, RoleTransferError::InvalidPendingAccount);
         e.storage().temporary().remove(pending_key);
-
         return;
     }
 
     let current_ledger = e.ledger().sequence();
-    if live_until_ledger > e.ledger().max_live_until_ledger() || live_until_ledger < current_ledger
-    {
-        panic_with_error!(e, RoleTransferError::InvalidLiveUntilLedger);
-    }
+    assert_with_error!(
+        e,
+        live_until_ledger <= e.ledger().max_live_until_ledger()
+            && live_until_ledger >= current_ledger,
+        RoleTransferError::InvalidLiveUntilLedger
+    );
 
     let live_for = live_until_ledger - current_ledger;
     e.storage().temporary().set(pending_key, new);
