@@ -23,6 +23,7 @@ members = [
     "packages/macros",
     "packages/test-utils/*",
     "packages/tokens",
+    "packages/sdk",
 ]
 exclude = ["examples/upgradeable/testdata"]
 
@@ -53,6 +54,7 @@ stellar-contract-utils = { path = "packages/contract-utils" }
 stellar-event-assertion = { path = "packages/test-utils/event-assertion" }
 stellar-tokens = { path = "packages/tokens" }
 stellar-macros = { path = "packages/macros" }
+stellar-oz-sdk = { path = "packages/sdk" }
 
 [profile.release]
 opt-level = "z"
