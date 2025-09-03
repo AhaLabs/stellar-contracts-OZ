@@ -592,9 +592,7 @@ name = "fungible-allowlist-example"
 version = "0.4.1"
 dependencies = [
  "soroban-sdk",
- "stellar-access",
- "stellar-macros",
- "stellar-tokens",
+ "stellar-oz-sdk",
 ]
 
 [[package]]
@@ -1755,6 +1753,19 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.104",
+]
+
+[[package]]
+name = "stellar-oz-sdk"
+version = "0.4.1"
+dependencies = [
+ "soroban-sdk",
+ "soroban-test-helpers",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-event-assertion",
+ "stellar-macros",
+ "stellar-tokens",
 ]
 
 [[package]]
