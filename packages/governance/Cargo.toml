@@ -12,6 +12,11 @@ description = "Governance Utilities for Stellar contracts."
 crate-type = ["lib", "cdylib"]
 doctest = false
 
+[features]
+default = []
+timelock = []
+votes = []
+
 [dependencies]
 soroban-sdk = { workspace = true }
 

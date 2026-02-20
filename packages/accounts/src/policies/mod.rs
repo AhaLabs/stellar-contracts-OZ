@@ -9,10 +9,13 @@ use soroban_sdk::{auth::Context, contractclient, Address, Env, FromVal, Val, Vec
 
 use crate::smart_account::{ContextRule, Signer};
 
+#[cfg(feature = "simple-threshold")]
 pub mod simple_threshold;
+#[cfg(feature = "spending-limit")]
 pub mod spending_limit;
 #[cfg(test)]
 mod test;
+#[cfg(feature = "weighted-threshold")]
 pub mod weighted_threshold;
 
 /// Core trait for authorization policies in smart accounts.

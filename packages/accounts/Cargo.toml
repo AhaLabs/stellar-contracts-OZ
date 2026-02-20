@@ -11,6 +11,15 @@ description = "Smart Account Contracts and Utilities."
 crate-type = ["lib", "cdylib"]
 doctest = false
 
+[features]
+default = []
+smart-account = []
+simple-threshold = ["smart-account"]
+weighted-threshold = ["smart-account"]
+spending-limit = ["smart-account"]
+ed25519 = []
+webauthn = []
+
 [dependencies]
 soroban-sdk = { workspace = true }
 serde = { workspace = true, features = ["derive"] }

@@ -5,10 +5,12 @@
 //! provides utility functions for `ed25519` signature verification and
 //! `webauthn` (passkey authentication) that can be used to build verifier
 //! contracts.
+#[cfg(feature = "ed25519")]
 pub mod ed25519;
 #[cfg(test)]
 mod test;
 pub mod utils;
+#[cfg(feature = "webauthn")]
 pub mod webauthn;
 use soroban_sdk::{contractclient, Bytes, Env, FromVal, Val};
 
