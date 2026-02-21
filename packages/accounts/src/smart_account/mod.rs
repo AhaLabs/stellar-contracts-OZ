@@ -3,7 +3,7 @@ mod storage;
 mod test;
 use soroban_sdk::{
     auth::CustomAccountInterface, contractclient, contracterror, contractevent, Address, Env, Map,
-    String, Symbol, Val, Vec,
+    String, Symbol, TryFromVal as _, Val, Vec,
 };
 pub use storage::{
     add_context_rule, add_policy, add_signer, authenticate, do_check_auth, get_context_rule,
@@ -498,7 +498,7 @@ pub struct PolicyAdded {
     #[topic]
     pub context_rule_id: u32,
     pub policy: Address,
-    pub install_param: Val,
+    pub install_param: Map<Address, Val>,
 }
 
 /// Emits an event indicating a policy has been added to a context rule.
@@ -515,6 +515,11 @@ pub struct PolicyAdded {
 /// * topics - `["policy_added", context_rule_id: u32]`
 /// * data - `[policy: Address, install_param: Val]`
 pub fn emit_policy_added(e: &Env, context_rule_id: u32, policy: &Address, install_param: Val) {
+    let install_param = if install_param.is_void() {
+        Map::new(e)
+    } else {
+        Map::try_from_val(e, &install_param).unwrap()
+    };
     PolicyAdded { context_rule_id, policy: policy.clone(), install_param }.publish(e);
 }
 

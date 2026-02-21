@@ -32,6 +32,7 @@ members = [
     "packages/macros",
     "packages/test-utils/*",
     "packages/tokens",
+    "tests/spec",
 ]
 exclude = ["examples/upgradeable/testdata"]
 
