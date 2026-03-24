@@ -15,6 +15,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "all"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-fee-abstraction",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
 name = "android_system_properties"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -785,6 +796,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "generate-combinations"
+version = "0.0.0"
+
+[[package]]
 name = "generic-array"
 version = "0.14.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1244,6 +1259,329 @@ dependencies = [
  "soroban-sdk",
  "stellar-access",
  "stellar-macros",
+]
+
+[[package]]
+name = "oz-ft-allowlist"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-ft-allowlist-capped"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-ft-allowlist-capped-pausable"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-ft-allowlist-pausable"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-ft-blocklist"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-ft-blocklist-capped"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-ft-blocklist-capped-pausable"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-ft-blocklist-pausable"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-ft-capped"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-ft-capped-pausable"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-ft-pausable"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-ft-standard"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-ft-vault"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-ft-votes"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-governance",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-ft-votes-capped"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-governance",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-ft-votes-capped-pausable"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-governance",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-ft-votes-pausable"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-governance",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-nft-consecutive"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-nft-consecutive-pausable"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-nft-consecutive-royalties"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-nft-consecutive-royalties-pausable"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-nft-enumerable"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-nft-enumerable-pausable"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-nft-enumerable-royalties"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-nft-enumerable-royalties-pausable"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-nft-pausable"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-nft-royalties"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-nft-royalties-pausable"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
+]
+
+[[package]]
+name = "oz-nft-standard"
+version = "0.6.0"
+dependencies = [
+ "soroban-sdk",
+ "stellar-access",
+ "stellar-contract-utils",
+ "stellar-macros",
+ "stellar-tokens",
 ]
 
 [[package]]

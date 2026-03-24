@@ -1,6 +1,9 @@
 [workspace]
 resolver = "2"
 members = [
+    "combinations/*",
+    "scripts/generate-combinations",
+    "examples/all",
     "examples/fungible-allowlist",
     "examples/fungible-blocklist",
     "examples/fungible-capped",

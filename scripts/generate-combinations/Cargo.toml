@@ -1,0 +1,8 @@
+[package]
+name = "generate-combinations"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "generate-combinations"
+path = "src/main.rs"
