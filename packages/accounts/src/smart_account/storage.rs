@@ -351,8 +351,12 @@ pub fn authenticate(e: &Env, auth_digest: &Hash<32>, signer: &Signer, sig_data: 
             }
         }
         Signer::Delegated(addr) => {
-            let args = (auth_digest.clone(),).into_val(e);
-            addr.require_auth_for_args(args)
+            // CAP-0071 (protocol 27): the host forwards the current
+            // authorization context to `addr` and validates its signature from
+            // the delegate list carried inside THIS entry's credentials — one
+            // auth entry total, instead of a separate
+            // `require_auth_for_args((auth_digest,))` entry per delegate.
+            e.custom_account().delegate_auth(addr)
         }
     }
 }
