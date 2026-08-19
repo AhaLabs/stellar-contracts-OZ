@@ -6,8 +6,9 @@
 //! ## Architecture Overview
 //!
 //! ### Signers - Authentication
-//! - **Delegated**: A Soroban `Address` that uses built-in signature
-//!   verification via `require_auth_for_args`.
+//! - **Delegated**: A Soroban `Address` authenticated by the host via CAP-0071
+//!   authentication delegation (`delegate_account_auth`), sharing this
+//!   account's authorization entry.
 //! - **External**: A public key paired with a verifier contract for custom
 //!   cryptographic verification (e.g., secp256r1, passkeys).
 //!

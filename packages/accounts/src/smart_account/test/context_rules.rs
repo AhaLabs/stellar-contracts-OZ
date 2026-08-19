@@ -160,6 +160,7 @@ fn do_check_auth_single_context_with_policies_success() {
 fn do_check_auth_multiple_contexts_success() {
     let e = Env::default();
     let address = e.register(MockContract, ());
+    let verifier_addr = e.register(MockVerifierContract, ());
 
     e.mock_all_auths();
 
@@ -169,8 +170,17 @@ fn do_check_auth_multiple_contexts_success() {
         let context_type1 = ContextRuleType::CallContract(contract_addr1.clone());
         let context_type2 = ContextRuleType::CallContract(contract_addr2.clone());
 
-        // Add rules for both contexts
-        let signers = create_test_signers(&e);
+        // Add rules for both contexts. External signers (mock verifier
+        // approves): Delegated signers authenticate through the host's
+        // delegated-auth tracker and cannot run outside a real check-auth
+        // frame — see test/delegation.rs for that flow.
+        let signers = Vec::from_array(
+            &e,
+            [
+                Signer::External(verifier_addr.clone(), Bytes::from_array(&e, &[1u8; 4])),
+                Signer::External(verifier_addr.clone(), Bytes::from_array(&e, &[2u8; 4])),
+            ],
+        );
         let policies = Map::new(&e);
         let rule1 = add_context_rule(
             &e,
@@ -331,8 +341,14 @@ fn do_check_auth_unauthorized_external_signer_rejected() {
         let contract_addr = Address::generate(&e);
         let context_type = ContextRuleType::CallContract(contract_addr.clone());
 
-        // Create a rule with only delegated signers
-        let signers = create_test_signers(&e);
+        // Create a rule with external signers (the mock verifier approves).
+        let signers = Vec::from_array(
+            &e,
+            [
+                Signer::External(verifier_addr.clone(), Bytes::from_array(&e, &[1u8; 4])),
+                Signer::External(verifier_addr.clone(), Bytes::from_array(&e, &[2u8; 4])),
+            ],
+        );
         let rule = add_context_rule(
             &e,
             &context_type,
@@ -720,7 +736,10 @@ fn authenticate_external_signer_verification_fails() {
 }
 
 #[test]
-fn authenticate_mixed_signers_success() {
+fn authenticate_external_signer_with_verifier_success() {
+    // Delegated signers can no longer be exercised here: `delegate_account_auth`
+    // requires a real `__check_auth` host frame (CAP-0071). The delegated arm is
+    // covered end-to-end in test/delegation.rs.
     let e = Env::default();
     let address = e.register(MockContract, ());
     let verifier_addr = e.register(MockVerifierContract, ());
@@ -728,10 +747,7 @@ fn authenticate_mixed_signers_success() {
     e.mock_all_auths();
 
     e.as_contract(&address, || {
-        let native_addr = Address::generate(&e);
         let key_data = Bytes::from_array(&e, &[1u8; 32]);
-
-        let native_signer = Signer::Delegated(native_addr);
         let external_signer = Signer::External(verifier_addr.clone(), key_data);
 
         // Set verifier to return true
@@ -741,7 +757,6 @@ fn authenticate_mixed_signers_success() {
 
         let payload = e.crypto().sha256(&Bytes::from_array(&e, &[1u8; 32]));
 
-        authenticate(&e, &payload, &native_signer, &Bytes::new(&e));
         authenticate(&e, &payload, &external_signer, &Bytes::from_array(&e, &[5, 6, 7, 8]));
     });
 }
